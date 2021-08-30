@@ -18,5 +18,9 @@
     "python.linting.pylintEnabled": false,
     "files.exclude": {
         "**/*.pyc": true
+    },
+    "[python]": {
+        "files.insertFinalNewline": true,
+        "files.trimFinalNewlines": true
     }
 }
