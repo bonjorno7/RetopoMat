@@ -2,6 +2,7 @@ from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
 from .ops import AddReferenceMaterialOperator, AddRetopoMaterialOperator, RemoveMaterialsOperator
+from .props import RetopoMatSettings
 
 
 class RetopoMatPanel(Panel):
@@ -28,8 +29,30 @@ class MaterialsPanel(RetopoMatPanel):
         layout.operator(RemoveMaterialsOperator.bl_idname)
 
 
+class SettingsPanel(RetopoMatPanel):
+    bl_idname = 'RETOPOMAT_PT_settings'
+    bl_label = 'Settings'
+
+    def draw(self, context: Context):
+        layout = self.configure_layout()
+        settings: RetopoMatSettings = context.window_manager.retopo_mat
+
+        layout.prop(settings, 'color')
+        layout.prop(settings, 'intensity')
+
+        layout.separator()
+
+        layout.prop(settings, 'wire_visibility')
+        row = layout.row()
+        row.enabled = settings.wire_visibility
+        row.prop(settings, 'wire_thickness')
+
+        # TODO: Add skybox rotation.
+
+
 classes = (
     MaterialsPanel,
+    SettingsPanel,
 )
 
 
