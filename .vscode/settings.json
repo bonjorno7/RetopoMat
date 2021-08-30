@@ -16,6 +16,8 @@
     ],
     "python.linting.enabled": true,
     "python.linting.pylintEnabled": false,
+    "files.encoding": "utf8",
+    "files.eol": "\n",
     "files.exclude": {
         "**/*.pyc": true
     },
