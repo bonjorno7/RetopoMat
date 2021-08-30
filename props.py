@@ -8,6 +8,9 @@ class RetopoMatSettings(PropertyGroup):
         name='Color',
         description='Color of the retopo material',
         subtype='COLOR',
+        default=(0.9, 0.6, 0.0),
+        min=0.0,
+        max=1.0,
         # TODO: Add getter and setter for retopo material color.
     )
 
