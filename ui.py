@@ -1,6 +1,8 @@
 from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
+from .ops import AddReferenceMaterialOperator, AddRetopoMaterialOperator, RemoveMaterialsOperator
+
 
 class RetopoMatPanel(Panel):
     bl_category = 'RetopoMat'
@@ -21,9 +23,9 @@ class MaterialsPanel(RetopoMatPanel):
     def draw(self, context: Context):
         layout = self.configure_layout()
 
-        layout.operator('retopomat.add_reference_material')
-        layout.operator('retopomat.add_retopo_material')
-        layout.operator('retopomat.remove_materials')
+        layout.operator(AddReferenceMaterialOperator.bl_idname)
+        layout.operator(AddRetopoMaterialOperator.bl_idname)
+        layout.operator(RemoveMaterialsOperator.bl_idname)
 
 
 classes = (
