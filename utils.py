@@ -77,8 +77,8 @@ def _setup_retopo_material(material: Material):
 # TODO: Add function to add node at position, and maybe a dict for default values?
 
 
-def set_material(objects: List[Object], material: Material = None):
-    '''For each mesh object, clear materials, then add the given material.'''
+def set_materials(objects: List[Object], materials: List[Material]):
+    '''For each mesh object, clear materials, then add the given materials.'''
     for object in objects:
         if object.type != 'MESH':
             continue
@@ -86,7 +86,7 @@ def set_material(objects: List[Object], material: Material = None):
         data: Mesh = object.data
         data.materials.clear()
 
-        if material is not None:  # If the material is None, don't assign it.
+        for material in materials:
             data.materials.append(material)
 
 
