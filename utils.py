@@ -1,28 +1,52 @@
-from typing import List
+from typing import List, Union
 
 import bpy
 from bpy.types import Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial
 
+REFERENCE = 'RetopoMat Reference'
+RETOPO = 'RetopoMat Retopo'
+MATERIAL = Union[REFERENCE, RETOPO]
 
-def get_material(name: str) -> Material:
-    '''Get an empty material with the given name, create it if necessary.'''
+
+def get_material(name: MATERIAL) -> Material:
+    '''Get a material with the given name, create it if necessary.'''
     if name in bpy.data.materials:
         material = bpy.data.materials[name]
     else:
         material = bpy.data.materials.new(name)
 
-    material.use_nodes = True
-    material.node_tree.nodes.clear()
+    if name == REFERENCE and not _check_reference_material(material):
+        _setup_reference_material(material)
+    elif name == RETOPO and not _check_retopo_material(material):
+        _setup_retopo_material(material)
 
     return material
 
 
-# TODO: Add function to add node at position, and maybe a dict for default values?
+def _check_reference_material(material: Material) -> bool:
+    '''Check whether the reference material is valid.'''
+    if not material.use_nodes:
+        return False
+
+    # TODO: Check whether a principled node is present.
+
+    return True
 
 
-def get_reference_material() -> Material:
+def _check_retopo_material(material: Material) -> bool:
+    '''Check whether the retopo material is valid.'''
+    if not material.use_nodes:
+        return False
+
+    # TODO: Check whether an emission node is present.
+
+    return True
+
+
+def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
-    material = get_material('RetopoMat Reference')
+    material.use_nodes = True
+    material.node_tree.nodes.clear()
 
     principled_node = material.node_tree.nodes.new(ShaderNodeBsdfPrincipled.__name__)
     output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
@@ -32,12 +56,11 @@ def get_reference_material() -> Material:
 
     material.node_tree.links.new(output_node.inputs[0], principled_node.outputs[0])
 
-    return material
 
-
-def get_retopo_material() -> Material:
+def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
-    material = get_material('RetopoMat Retopo')
+    material.use_nodes = True
+    material.node_tree.nodes.clear()
 
     emission_node = material.node_tree.nodes.new(ShaderNodeEmission.__name__)
     output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
@@ -47,11 +70,12 @@ def get_retopo_material() -> Material:
 
     material.node_tree.links.new(output_node.inputs[0], emission_node.outputs[0])
 
-    return material
+
+# TODO: Add function to add node at position, and maybe a dict for default values?
 
 
-def assign_material(objects: List[Object], material: Material):
-    '''For each mesh object, clear materials, then assign the given material.'''
+def set_material(objects: List[Object], material: Material = None):
+    '''For each mesh object, clear materials, then add the given material.'''
     for object in objects:
         if object.type != 'MESH':
             continue
