@@ -2,7 +2,7 @@ from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerP
 from bpy.types import Context, PropertyGroup, WindowManager
 from bpy.utils import register_class, unregister_class
 
-from .utils import get_material, MaterialName
+from .utils import get_material, MaterialName, get_wire_modifier
 
 
 class RetopoMatSettings(PropertyGroup):
@@ -39,12 +39,24 @@ class RetopoMatSettings(PropertyGroup):
         update=_update_intensity,
     )
 
+    def _update_wire_visibility(self, context: Context):
+        modifier = get_wire_modifier(context.active_object)
+
+        if modifier is not None:
+            modifier.show_viewport = self.wire_visibility
+
     wire_visibility: BoolProperty(
         name='Wire Visibility',
         description='Whether to show the wireframe',
         default=True,
-        # TODO: Add getter and setter for selected object wireframe visibility.
+        update=_update_wire_visibility,
     )
+
+    def _update_wire_thickness(self, context: Context):
+        modifier = get_wire_modifier(context.active_object)
+
+        if modifier is not None:
+            modifier.thickness = self.wire_thickness
 
     wire_thickness: FloatProperty(
         name='Wire Thickness',
@@ -52,7 +64,7 @@ class RetopoMatSettings(PropertyGroup):
         default=0.5,
         min=0.0,
         soft_max=10.0,
-        # TODO: Add getter and setter for selected object wireframe thickness.
+        update=_update_wire_thickness,
     )
 
 
