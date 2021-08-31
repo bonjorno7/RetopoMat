@@ -1,23 +1,25 @@
-from typing import List, Union
+from enum import Enum
+from typing import List
 
 import bpy
 from bpy.types import Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial
 
-REFERENCE = 'RetopoMat Reference'
-RETOPO = 'RetopoMat Retopo'
-MATERIAL = Union[REFERENCE, RETOPO]
+
+class MaterialName(Enum):
+    REFERENCE = 'RetopoMat Reference'
+    RETOPO = 'RetopoMat Retopo'
 
 
-def get_material(name: MATERIAL) -> Material:
+def get_material(name: MaterialName) -> Material:
     '''Get a material with the given name, create it if necessary.'''
-    if name in bpy.data.materials:
-        material = bpy.data.materials[name]
+    if name.value in bpy.data.materials:
+        material = bpy.data.materials[name.value]
     else:
-        material = bpy.data.materials.new(name)
+        material = bpy.data.materials.new(name.value)
 
-    if name == REFERENCE and not _check_reference_material(material):
+    if name is MaterialName.REFERENCE and not _check_reference_material(material):
         _setup_reference_material(material)
-    elif name == RETOPO and not _check_retopo_material(material):
+    elif name is MaterialName.RETOPO and not _check_retopo_material(material):
         _setup_retopo_material(material)
 
     return material
