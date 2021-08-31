@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List
+from typing import List, Union
 
 import bpy
 from bpy.types import (Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial,
@@ -90,7 +90,7 @@ def set_materials(objects: List[Object], materials: List[Material]):
             data.materials.append(material)
 
 
-def get_wire_modifier(object: Object = None) -> WireframeModifier:
+def get_wire_modifier(object: Union[Object, None]) -> Union[WireframeModifier, None]:
     '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
     if object is None or object.type != 'MESH':
         return None
