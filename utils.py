@@ -2,7 +2,8 @@ from enum import Enum
 from typing import List
 
 import bpy
-from bpy.types import Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial
+from bpy.types import (Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial,
+                       WireframeModifier)
 
 
 class MaterialName(Enum):
@@ -87,3 +88,26 @@ def set_material(objects: List[Object], material: Material = None):
 
         if material is not None:  # If the material is None, don't assign it.
             data.materials.append(material)
+
+
+def get_wire_modifier(object: Object = None) -> WireframeModifier:
+    '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
+    if object is None or object.type != 'MESH':
+        return None
+
+    for modifier in reversed(object.modifiers):
+        if modifier.type == 'WIREFRAME':
+            return modifier
+    else:
+        modifier = object.modifiers.new('Wireframe', 'WIREFRAME')
+
+    modifier: WireframeModifier
+    modifier.show_in_editmode = True
+    modifier.use_boundary = True
+    modifier.use_replace = False
+    modifier.use_even_offset = True
+    modifier.use_relative_offset = False
+    modifier.use_crease = False
+    modifier.material_offset = 1
+
+    return modifier
