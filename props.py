@@ -1,18 +1,34 @@
 from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty
-from bpy.types import PropertyGroup, WindowManager
+from bpy.types import Context, PropertyGroup, WindowManager
 from bpy.utils import register_class, unregister_class
+
+from .utils import get_material, MaterialName
 
 
 class RetopoMatSettings(PropertyGroup):
+
+    def _update_color(self, context: Context):
+        material = get_material(MaterialName.RETOPO)
+        node = material.node_tree.nodes['Emission']
+        socket = node.inputs['Color']
+        socket.default_value = self.color
+
     color: FloatVectorProperty(
         name='Color',
         description='Color of the retopo material',
         subtype='COLOR',
-        default=(0.9, 0.6, 0.0),
+        size=4,
+        default=(0.9, 0.6, 0.0, 1.0),
         min=0.0,
         max=1.0,
-        # TODO: Add getter and setter for retopo material color.
+        update=_update_color,
     )
+
+    def _update_intensity(self, context: Context):
+        material = get_material(MaterialName.RETOPO)
+        node = material.node_tree.nodes['Emission']
+        socket = node.inputs['Strength']
+        socket.default_value = self.intensity
 
     intensity: FloatProperty(
         name='Intensity',
@@ -20,7 +36,7 @@ class RetopoMatSettings(PropertyGroup):
         default=1.0,
         min=0.0,
         soft_max=1.0,
-        # TODO: Add getter and setter for retopo material intensity.
+        update=_update_intensity,
     )
 
     wire_visibility: BoolProperty(
