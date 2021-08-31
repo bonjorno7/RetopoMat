@@ -33,8 +33,9 @@ class AddRetopoMaterialOperator(Operator):
         return any(obj.type == 'MESH' for obj in context.selected_objects)
 
     def execute(self, context: Context) -> set:
-        material = get_material(MaterialName.RETOPO)
-        set_materials(context.selected_objects, [material])
+        retopo_material = get_material(MaterialName.RETOPO)
+        wire_material = get_material(MaterialName.WIRE)
+        set_materials(context.selected_objects, [retopo_material, wire_material])
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}

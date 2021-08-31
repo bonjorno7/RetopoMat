@@ -9,6 +9,7 @@ from bpy.types import (Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderN
 class MaterialName(Enum):
     REFERENCE = 'RetopoMat Reference'
     RETOPO = 'RetopoMat Retopo'
+    WIRE = 'RetopoMat Wire'
 
 
 def get_material(name: MaterialName) -> Material:
@@ -22,6 +23,8 @@ def get_material(name: MaterialName) -> Material:
         _setup_reference_material(material)
     elif name is MaterialName.RETOPO and not _check_retopo_material(material):
         _setup_retopo_material(material)
+    elif name is MaterialName.WIRE and not _check_wire_material(material):
+        _setup_wire_material(material)
 
     return material
 
@@ -46,6 +49,16 @@ def _check_retopo_material(material: Material) -> bool:
     return True
 
 
+def _check_wire_material(material: Material) -> bool:
+    '''Check whether the wire material is valid.'''
+    if not material.use_nodes:
+        return False
+
+    # TODO: Check whether an emission node is present.
+
+    return True
+
+
 def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
     material.use_nodes = True
@@ -62,6 +75,20 @@ def _setup_reference_material(material: Material):
 
 def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
+    material.use_nodes = True
+    material.node_tree.nodes.clear()
+
+    emission_node = material.node_tree.nodes.new(ShaderNodeEmission.__name__)
+    output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
+
+    # TODO: Move nodes to aesthetically pleasing positions.
+    # TODO: Set default values for nodes.
+
+    material.node_tree.links.new(output_node.inputs[0], emission_node.outputs[0])
+
+
+def _setup_wire_material(material: Material):
+    '''Setup the wire material.'''
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
