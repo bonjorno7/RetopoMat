@@ -1,7 +1,7 @@
 from bpy.types import Context, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import assign_material, get_reference_material, get_retopo_material
+from .utils import REFERENCE, RETOPO, get_material, set_material
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -15,8 +15,8 @@ class AddReferenceMaterialOperator(Operator):
         return any(obj.type == 'MESH' for obj in context.selected_objects)
 
     def execute(self, context: Context) -> set:
-        material = get_reference_material()
-        assign_material(context.selected_objects, material)
+        material = get_material(REFERENCE)
+        set_material(context.selected_objects, material)
 
         self.report({'INFO'}, 'Added reference material')
         return {'FINISHED'}
@@ -33,8 +33,8 @@ class AddRetopoMaterialOperator(Operator):
         return any(obj.type == 'MESH' for obj in context.selected_objects)
 
     def execute(self, context: Context) -> set:
-        material = get_retopo_material()
-        assign_material(context.selected_objects, material)
+        material = get_material(RETOPO)
+        set_material(context.selected_objects, material)
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}
@@ -52,7 +52,7 @@ class RemoveMaterialsOperator(Operator):
 
     def execute(self, context: Context) -> set:
         material = None  # Only remove materials.
-        assign_material(context.selected_objects, material)
+        set_material(context.selected_objects, material)
 
         self.report({'INFO'}, 'Cleared materials')
         return {'FINISHED'}
