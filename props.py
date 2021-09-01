@@ -11,30 +11,17 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(MaterialName.REFERENCE)
         node = material.node_tree.nodes['Principled BSDF']
         node.inputs['Base Color'].default_value = self.reference_color
+        node.inputs['Alpha'].default_value = self.reference_color[3]
 
     reference_color: FloatVectorProperty(
         name='Reference Color',
-        description='Color of the reference material',
+        description='Color and opacity of the reference material',
         subtype='COLOR',
         size=4,
-        default=(0.2, 0.2, 0.2, 1.0),
+        default=(0.2, 0.2, 0.2, 0.8),
         min=0.0,
         max=1.0,
         update=_update_reference_color,
-    )
-
-    def _update_reference_opacity(self, context: Context):
-        material = get_material(MaterialName.REFERENCE)
-        node = material.node_tree.nodes['Principled BSDF']
-        node.inputs['Alpha'].default_value = self.reference_opacity
-
-    reference_opacity: FloatProperty(
-        name='Reference Opacity',
-        description='Opacity of the reference material',
-        default=0.8,
-        min=0.0,
-        soft_max=1.0,
-        update=_update_reference_opacity,
     )
 
     def _update_retopo_color(self, context: Context):

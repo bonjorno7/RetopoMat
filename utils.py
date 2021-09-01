@@ -100,7 +100,7 @@ def _setup_reference_material(material: Material):
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     _set_defaults(principled_node, {
         'Base Color': settings.reference_color,
-        'Alpha': settings.reference_opacity,
+        'Alpha': settings.reference_color[3],
         'Roughness': 0.7,
         'Metallic': 1.0,
     })
