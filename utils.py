@@ -210,6 +210,7 @@ def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Unio
 
 
 def remove_wire_modifier(object: Union[Object, None]):
+    '''Remove our wireframe modifier from the given object.'''
     modifier = get_wire_modifier(object)
 
     if modifier is not None:
