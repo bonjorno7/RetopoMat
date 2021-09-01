@@ -36,33 +36,30 @@ class SettingsPanel(RetopoMatPanel):
     bl_label = 'Settings'
 
     def draw(self, context: Context):
-        layout = self.configure_layout()
+        layout = self.configure_layout().column()
         settings: RetopoMatSettings = context.scene.retopo_mat
 
         layout.prop(settings, 'reference_color')
-        layout.prop(settings, 'reference_opacity')
-
-        layout.separator()
-
         layout.prop(settings, 'retopo_color')
-        layout.prop(settings, 'wire_color')
 
         layout.separator()
 
         layout.prop(settings, 'wire_visibility')
-        row = layout.row()
-        row.enabled = settings.wire_visibility
-        row.prop(settings, 'wire_thickness')
+        sub = layout.column()
+        sub.enabled = settings.wire_visibility
+        sub.prop(settings, 'wire_color')
+        sub.prop(settings, 'wire_thickness')
+
+        try:
+            sub.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
+        except:
+            print_exc()
 
         layout.separator()
 
         try:
-            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
-        except:
-            print_exc()
-
-        try:
             layout.prop(context.space_data.shading, 'studiolight_rotate_z', text='World Rotation')
+            layout.prop(context.space_data.shading, 'studiolight_intensity', text='World Strength')
         except:
             print_exc()
 
