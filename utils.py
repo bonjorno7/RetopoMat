@@ -28,12 +28,14 @@ def check_material_slots(objects: List[Object]) -> bool:
     return False
 
 
-def get_material(name: MaterialName) -> Material:
+def get_material(name: MaterialName, create: bool = False) -> Union[Material, None]:
     '''Get a material with the given name, create it if necessary.'''
     if name.value in bpy.data.materials:
         material = bpy.data.materials[name.value]
-    else:
+    elif create:
         material = bpy.data.materials.new(name.value)
+    else:
+        return None
 
     if name is MaterialName.REFERENCE:
         if not _check_reference_material(material):
@@ -179,7 +181,7 @@ def set_materials(objects: List[Object], materials: List[Material]):
             data.materials.append(material)
 
 
-def get_wire_modifier(object: Union[Object, None]) -> Union[WireframeModifier, None]:
+def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Union[WireframeModifier, None]:
     '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
     if object is None or object.type != 'MESH':
         return None
@@ -187,6 +189,9 @@ def get_wire_modifier(object: Union[Object, None]) -> Union[WireframeModifier, N
     for modifier in reversed(object.modifiers):
         if modifier.type == 'WIREFRAME':
             return modifier
+
+    if not create:
+        return None
 
     modifier: WireframeModifier = object.modifiers.new('Wireframe', 'WIREFRAME')
     modifier.show_in_editmode = True

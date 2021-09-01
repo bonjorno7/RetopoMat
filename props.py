@@ -9,9 +9,11 @@ class RetopoMatSettings(PropertyGroup):
 
     def _update_reference_color(self, context: Context):
         material = get_material(MaterialName.REFERENCE)
-        node = material.node_tree.nodes['Principled BSDF']
-        node.inputs['Base Color'].default_value = self.reference_color
-        node.inputs['Alpha'].default_value = self.reference_color[3]
+
+        if material is not None:
+            node = material.node_tree.nodes['Principled BSDF']
+            node.inputs['Base Color'].default_value = self.reference_color
+            node.inputs['Alpha'].default_value = self.reference_color[3]
 
     reference_color: FloatVectorProperty(
         name='Reference Color',
@@ -26,8 +28,10 @@ class RetopoMatSettings(PropertyGroup):
 
     def _update_retopo_color(self, context: Context):
         material = get_material(MaterialName.RETOPO)
-        node = material.node_tree.nodes['Emission']
-        node.inputs['Color'].default_value = self.retopo_color
+
+        if material is not None:
+            node = material.node_tree.nodes['Emission']
+            node.inputs['Color'].default_value = self.retopo_color
 
     retopo_color: FloatVectorProperty(
         name='Retopo Color',
@@ -42,8 +46,10 @@ class RetopoMatSettings(PropertyGroup):
 
     def _update_wire_color(self, context: Context):
         material = get_material(MaterialName.WIRE)
-        node = material.node_tree.nodes['Emission']
-        node.inputs['Color'].default_value = self.wire_color
+
+        if material is not None:
+            node = material.node_tree.nodes['Emission']
+            node.inputs['Color'].default_value = self.wire_color
 
     wire_color: FloatVectorProperty(
         name='Wire Color',
