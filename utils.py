@@ -109,7 +109,18 @@ def _setup_wire_material(material: Material):
     material.node_tree.links.new(output_node.inputs[0], emission_node.outputs[0])
 
 
-# TODO: Add function to add node at position, and maybe a dict for default values?
+def _add_node(material: Material, node_type: type, location: Tuple[float, float]) -> ShaderNode:
+    '''Create a node of the given type at the given position.'''
+    node = material.node_tree.nodes.new(node_type.__name__)
+    node.location = location
+    node.select = False
+    return node
+
+
+def _set_defaults(node: ShaderNode, defaults: dict):
+    '''Set default input values based on the given dictionary.'''
+    for key, value in defaults.items():
+        node.inputs[key].default_value = value
 
 
 def set_materials(objects: List[Object], materials: List[Material]):
