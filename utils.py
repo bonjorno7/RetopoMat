@@ -227,6 +227,4 @@ def flip_normals(object: Object):
         face: BMFace
         face.normal_flip()
 
-    # TODO: Check if there's anything that needs to be done before updating the edit mesh, such as bm.normal_update().
-
     update_edit_mesh(object.data)
