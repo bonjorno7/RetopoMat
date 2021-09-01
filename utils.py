@@ -82,44 +82,71 @@ def _check_wire_material(material: Material) -> bool:
 
 def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
+    material.blend_method = 'BLEND'
+    material.shadow_method = 'NONE'
+
+    material.use_backface_culling = False
+    material.show_transparent_back = False
+
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
-    principled_node = material.node_tree.nodes.new(ShaderNodeBsdfPrincipled.__name__)
-    output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
+    output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
+    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
 
-    # TODO: Move nodes to aesthetically pleasing positions.
-    # TODO: Set default values for nodes.
+    # TODO: Get color and alpha from settings.
+    _set_defaults(principled_node, {
+        'Base Color': (0.2, 0.2, 0.2, 1.0),
+        'Roughness': 0.7,
+        'Metallic': 1.0,
+        'Alpha': 0.8,
+    })
 
-    material.node_tree.links.new(output_node.inputs[0], principled_node.outputs[0])
+    material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
 
 
 def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
+    material.blend_method = 'OPAQUE'
+    material.shadow_method = 'NONE'
+
+    material.use_backface_culling = False
+    material.show_transparent_back = False
+
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
-    emission_node = material.node_tree.nodes.new(ShaderNodeEmission.__name__)
-    output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
+    output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
+    emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
+    invert_node = _add_node(material, ShaderNodeInvert, (-400, 0))
+    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-600, 0))
 
-    # TODO: Move nodes to aesthetically pleasing positions.
-    # TODO: Set default values for nodes.
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    _set_defaults(emission_node, {'Color': settings.color})
 
-    material.node_tree.links.new(output_node.inputs[0], emission_node.outputs[0])
+    material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
+    material.node_tree.links.new(emission_node.inputs['Strength'], invert_node.outputs['Color'])
+    material.node_tree.links.new(invert_node.inputs['Color'], geometry_node.outputs['Backfacing'])
 
 
 def _setup_wire_material(material: Material):
     '''Setup the wire material.'''
+    material.blend_method = 'OPAQUE'
+    material.shadow_method = 'NONE'
+
+    material.use_backface_culling = False
+    material.show_transparent_back = False
+
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
-    emission_node = material.node_tree.nodes.new(ShaderNodeEmission.__name__)
-    output_node = material.node_tree.nodes.new(ShaderNodeOutputMaterial.__name__)
+    output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
+    emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
 
-    # TODO: Move nodes to aesthetically pleasing positions.
-    # TODO: Set default values for nodes.
+    # TODO: Get color from settings.
+    _set_defaults(emission_node, {'Color': (0, 0, 0, 1)})
 
-    material.node_tree.links.new(output_node.inputs[0], emission_node.outputs[0])
+    material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 
 
 def _add_node(material: Material, node_type: type, location: Tuple[float, float]) -> ShaderNode:
