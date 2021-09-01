@@ -39,7 +39,8 @@ def _check_reference_material(material: Material) -> bool:
     if not material.use_nodes:
         return False
 
-    # TODO: Check whether a principled node is present.
+    if 'Principled BSDF' not in material.node_tree.nodes:
+        return False
 
     return True
 
@@ -49,7 +50,8 @@ def _check_retopo_material(material: Material) -> bool:
     if not material.use_nodes:
         return False
 
-    # TODO: Check whether an emission node is present.
+    if 'Emission' not in material.node_tree.nodes:
+        return False
 
     return True
 
@@ -59,7 +61,8 @@ def _check_wire_material(material: Material) -> bool:
     if not material.use_nodes:
         return False
 
-    # TODO: Check whether an emission node is present.
+    if 'Emission' not in material.node_tree.nodes:
+        return False
 
     return True
 
