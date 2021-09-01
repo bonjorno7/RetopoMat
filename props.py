@@ -23,6 +23,20 @@ class RetopoMatSettings(PropertyGroup):
         update=_update_reference_color,
     )
 
+    def _update_reference_opacity(self, context: Context):
+        material = get_material(MaterialName.REFERENCE)
+        node = material.node_tree.nodes['Principled BSDF']
+        node.inputs['Alpha'].default_value = self.reference_opacity
+
+    reference_opacity: FloatProperty(
+        name='Reference Opacity',
+        description='Opacity of the reference material',
+        default=0.8,
+        min=0.0,
+        soft_max=1.0,
+        update=_update_reference_opacity,
+    )
+
     def _update_retopo_color(self, context: Context):
         material = get_material(MaterialName.RETOPO)
         node = material.node_tree.nodes['Emission']
@@ -53,21 +67,6 @@ class RetopoMatSettings(PropertyGroup):
         min=0.0,
         max=1.0,
         update=_update_wire_color,
-    )
-
-    def _update_intensity(self, context: Context):
-        material = get_material(MaterialName.RETOPO)
-        node = material.node_tree.nodes['Emission']
-        socket = node.inputs['Strength']
-        socket.default_value = self.intensity
-
-    intensity: FloatProperty(
-        name='Intensity',
-        description='Intensity of the retopo material',
-        default=1.0,
-        min=0.0,
-        soft_max=1.0,
-        update=_update_intensity,
     )
 
     def _update_wire_visibility(self, context: Context):

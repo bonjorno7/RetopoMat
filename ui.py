@@ -40,9 +40,12 @@ class SettingsPanel(RetopoMatPanel):
         settings: RetopoMatSettings = context.scene.retopo_mat
 
         layout.prop(settings, 'reference_color')
+        layout.prop(settings, 'reference_opacity')
+
+        layout.separator()
+
         layout.prop(settings, 'retopo_color')
         layout.prop(settings, 'wire_color')
-        layout.prop(settings, 'intensity')
 
         layout.separator()
 
