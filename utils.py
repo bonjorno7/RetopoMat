@@ -1,6 +1,8 @@
 from enum import Enum
 from typing import TYPE_CHECKING, List, Tuple, Union
 
+from bmesh import from_edit_mesh, update_edit_mesh
+from bmesh.types import BMFace
 import bpy
 from bpy.types import (Material, Mesh, Object, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission,
                        ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, WireframeModifier)
@@ -215,3 +217,16 @@ def remove_wire_modifier(object: Union[Object, None]):
 
     if modifier is not None:
         object.modifiers.remove(modifier)
+
+
+def flip_normals(object: Object):
+    '''Flip all face normals on the given edit mode mesh object.'''
+    bm = from_edit_mesh(object.data)
+
+    for face in bm.faces:
+        face: BMFace
+        face.normal_flip()
+
+    # TODO: Check if there's anything that needs to be done before updating the edit mesh, such as bm.normal_update().
+
+    update_edit_mesh(object.data)

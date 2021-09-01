@@ -1,8 +1,8 @@
 from bpy.types import Context, Event, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import (MaterialName, check_material_slots, get_material, get_wire_modifier, remove_wire_modifier,
-                    set_materials)
+from .utils import (MaterialName, check_material_slots, flip_normals, get_material, get_wire_modifier,
+                    remove_wire_modifier, set_materials)
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -75,10 +75,29 @@ class RemoveMaterialsOperator(Operator):
         return {'FINISHED'}
 
 
+class FlipNormalsOperator(Operator):
+    bl_idname = 'retopomat.flip_normals'
+    bl_label = 'Flip Normals'
+    bl_description = 'Flip normals of all the faces in your mesh'
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        object = context.active_object
+        return (object is not None) and (object.type == 'MESH') and (object.mode == 'EDIT')
+
+    def execute(self, context: Context) -> set:
+        flip_normals(context.active_object)
+
+        self.report({'INFO'}, 'Flipped normals')
+        return {'FINISHED'}
+
+
 classes = (
     AddReferenceMaterialOperator,
     AddRetopoMaterialOperator,
     RemoveMaterialsOperator,
+    FlipNormalsOperator,
 )
 
 
