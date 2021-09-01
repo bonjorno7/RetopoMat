@@ -1,7 +1,7 @@
-from bpy.types import Context, Operator
+from bpy.types import Context, Event, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import MaterialName, get_material, set_materials
+from .utils import MaterialName, check_material_slots, get_material, set_materials
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -13,6 +13,17 @@ class AddReferenceMaterialOperator(Operator):
     @classmethod
     def poll(cls, context: Context) -> bool:
         return any(obj.type == 'MESH' for obj in context.selected_objects)
+
+    def draw(self, context: Context):
+        sub = self.layout.box().column()
+        sub.label(text='One of your objects has mutliple material slots.')
+        sub.label(text='This operation will remove them.')
+
+    def invoke(self, context: Context, event: Event) -> set:
+        if check_material_slots(context.selected_objects):
+            return context.window_manager.invoke_props_dialog(self)
+        else:
+            return self.execute(context)
 
     def execute(self, context: Context) -> set:
         material = get_material(MaterialName.REFERENCE)

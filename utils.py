@@ -12,6 +12,19 @@ class MaterialName(Enum):
     WIRE = 'RetopoMat Wire'
 
 
+def check_material_slots(objects: List[Object]) -> bool:
+    '''Check whether any of the given objects have multiple material slots.'''
+    for object in objects:
+        if object.type != 'MESH':
+            continue
+
+        data: Mesh = object.data
+        if len(data.materials) > 1:
+            return True
+
+    return False
+
+
 def get_material(name: MaterialName) -> Material:
     '''Get a material with the given name, create it if necessary.'''
     if name.value in bpy.data.materials:
