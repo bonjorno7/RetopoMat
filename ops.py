@@ -1,7 +1,7 @@
 from bpy.types import Context, Event, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import MaterialName, check_material_slots, get_material, set_materials
+from .utils import MaterialName, check_material_slots, get_material, get_wire_modifier, set_materials
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -49,6 +49,7 @@ class AddRetopoMaterialOperator(Operator):
         retopo_material = get_material(MaterialName.RETOPO, create=True)
         wire_material = get_material(MaterialName.WIRE, create=True)
         set_materials(context.active_object, [retopo_material, wire_material])
+        get_wire_modifier(context.active_object, create=True)
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}
