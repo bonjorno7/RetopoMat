@@ -1,3 +1,5 @@
+from traceback import print_exc
+
 from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
@@ -49,7 +51,17 @@ class SettingsPanel(RetopoMatPanel):
         row.enabled = settings.wire_visibility
         row.prop(settings, 'wire_thickness')
 
-        # TODO: Add skybox rotation.
+        layout.separator()
+
+        try:
+            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
+        except:
+            print_exc()
+
+        try:
+            layout.prop(context.space_data.shading, 'studiolight_rotate_z', text='World Rotation')
+        except:
+            print_exc()
 
 
 classes = (
