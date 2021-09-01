@@ -125,7 +125,7 @@ def _setup_retopo_material(material: Material):
     geometry_node = _add_node(material, ShaderNodeNewGeometry, (-600, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.color})
+    _set_defaults(emission_node, {'Color': settings.retopo_color})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
     material.node_tree.links.new(emission_node.inputs['Strength'], invert_node.outputs['Color'])

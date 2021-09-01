@@ -37,7 +37,7 @@ class SettingsPanel(RetopoMatPanel):
         layout = self.configure_layout()
         settings: RetopoMatSettings = context.scene.retopo_mat
 
-        layout.prop(settings, 'color')
+        layout.prop(settings, 'retopo_color')
         layout.prop(settings, 'intensity')
 
         layout.separator()
