@@ -86,7 +86,7 @@ class RetopoMatSettings(PropertyGroup):
         description='Thickness for the wireframe',
         subtype='DISTANCE',
         unit='LENGTH',
-        default=0.5,
+        default=0.02,
         soft_min=0.0,
         soft_max=1.0,
         step=0.01,
