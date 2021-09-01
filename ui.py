@@ -23,6 +23,7 @@ class RetopoMatPanel(Panel):
 class MaterialsPanel(RetopoMatPanel):
     bl_idname = 'RETOPOMAT_PT_materials'
     bl_label = 'Materials'
+    bl_order = 1
 
     def draw(self, context: Context):
         layout = self.configure_layout()
@@ -35,6 +36,7 @@ class MaterialsPanel(RetopoMatPanel):
 class SettingsPanel(RetopoMatPanel):
     bl_idname = 'RETOPOMAT_PT_settings'
     bl_label = 'Settings'
+    bl_order = 2
 
     def draw(self, context: Context):
         layout = self.configure_layout().column()
@@ -68,6 +70,7 @@ class SettingsPanel(RetopoMatPanel):
 class UtilitiesPanel(RetopoMatPanel):
     bl_idname = 'RETOPOMAT_PT_utilities'
     bl_label = 'Utilities'
+    bl_order = 3
 
     def draw(self, context: Context):
         layout = self.configure_layout()
