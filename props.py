@@ -1,8 +1,8 @@
 from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty
-from bpy.types import Context, PropertyGroup, WindowManager
+from bpy.types import Context, PropertyGroup, Scene
 from bpy.utils import register_class, unregister_class
 
-from .utils import get_material, MaterialName, get_wire_modifier
+from .utils import MaterialName, get_material, get_wire_modifier
 
 
 class RetopoMatSettings(PropertyGroup):
@@ -75,11 +75,11 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    WindowManager.retopo_mat = PointerProperty(type=RetopoMatSettings)
+    Scene.retopo_mat = PointerProperty(type=RetopoMatSettings)
 
 
 def unregister():
-    del WindowManager.retopo_mat
+    del Scene.retopo_mat
 
     for cls in reversed(classes):
         unregister_class(cls)
