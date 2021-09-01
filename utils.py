@@ -1,9 +1,12 @@
 from enum import Enum
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Tuple, Union
 
 import bpy
-from bpy.types import (Material, Mesh, Object, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeOutputMaterial,
-                       WireframeModifier)
+from bpy.types import (Material, Mesh, Object, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission,
+                       ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, WireframeModifier)
+
+if TYPE_CHECKING:
+    from .props import RetopoMatSettings
 
 
 class MaterialName(Enum):
