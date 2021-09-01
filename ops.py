@@ -7,16 +7,17 @@ from .utils import MaterialName, check_material_slots, get_material, set_materia
 class AddReferenceMaterialOperator(Operator):
     bl_idname = 'retopomat.add_reference_material'
     bl_label = 'Add Reference Material'
-    bl_description = 'Add a reference material to the selected objects'
+    bl_description = 'Add a reference material to the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return any(obj.type == 'MESH' for obj in context.selected_objects)
+        object = context.active_object
+        return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def draw(self, context: Context):
         sub = self.layout.box().column()
-        sub.label(text='One of your objects has mutliple material slots.')
+        sub.label(text='Your object has mutliple material slots.')
         sub.label(text='This operation will remove them.')
 
     def invoke(self, context: Context, event: Event) -> set:
@@ -26,8 +27,8 @@ class AddReferenceMaterialOperator(Operator):
             return self.execute(context)
 
     def execute(self, context: Context) -> set:
-        set_materials(context.selected_objects, [material])
         material = get_material(MaterialName.REFERENCE, create=True)
+        set_materials(context.active_object, [material])
 
         self.report({'INFO'}, 'Added reference material')
         return {'FINISHED'}
@@ -36,17 +37,18 @@ class AddReferenceMaterialOperator(Operator):
 class AddRetopoMaterialOperator(Operator):
     bl_idname = 'retopomat.add_retopo_material'
     bl_label = 'Add Retopo Material'
-    bl_description = 'Add a retopo material to the selected objects'
+    bl_description = 'Add a retopo material to the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return any(obj.type == 'MESH' for obj in context.selected_objects)
+        object = context.active_object
+        return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def execute(self, context: Context) -> set:
-        set_materials(context.selected_objects, [retopo_material, wire_material])
         retopo_material = get_material(MaterialName.RETOPO, create=True)
         wire_material = get_material(MaterialName.WIRE, create=True)
+        set_materials(context.active_object, [retopo_material, wire_material])
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}
@@ -55,15 +57,16 @@ class AddRetopoMaterialOperator(Operator):
 class RemoveMaterialsOperator(Operator):
     bl_idname = 'retopomat.remove_materials'
     bl_label = 'Remove Materials'
-    bl_description = 'Remove all materials from the selected objects'
+    bl_description = 'Remove all materials from the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return any(obj.type == 'MESH' for obj in context.selected_objects)
+        object = context.active_object
+        return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def execute(self, context: Context) -> set:
-        set_materials(context.selected_objects, [])
+        set_materials(context.active_object, [])
 
         self.report({'INFO'}, 'Cleared materials')
         return {'FINISHED'}

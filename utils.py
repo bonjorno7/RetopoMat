@@ -168,17 +168,16 @@ def _set_defaults(node: ShaderNode, defaults: dict):
         node.inputs[key].default_value = value
 
 
-def set_materials(objects: List[Object], materials: List[Material]):
-    '''For each mesh object, clear materials, then add the given materials.'''
-    for object in objects:
-        if object.type != 'MESH':
-            continue
+def set_materials(object: Object, materials: List[Material]):
+    '''Clear materials, then add the given materials.'''
+    if object is None or object.type != 'MESH':
+        return
 
-        data: Mesh = object.data
-        data.materials.clear()
+    data: Mesh = object.data
+    data.materials.clear()
 
-        for material in materials:
-            data.materials.append(material)
+    for material in materials:
+        data.materials.append(material)
 
 
 def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Union[WireframeModifier, None]:
