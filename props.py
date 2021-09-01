@@ -85,8 +85,8 @@ class RetopoMatSettings(PropertyGroup):
         name='Wire Thickness',
         description='Thickness for the wireframe',
         default=0.5,
-        min=0.0,
-        soft_max=10.0,
+        soft_min=0.0,
+        soft_max=1.0,
         update=_update_wire_thickness,
     )
 
