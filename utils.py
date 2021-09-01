@@ -19,12 +19,17 @@ def get_material(name: MaterialName) -> Material:
     else:
         material = bpy.data.materials.new(name.value)
 
-    if name is MaterialName.REFERENCE and not _check_reference_material(material):
-        _setup_reference_material(material)
-    elif name is MaterialName.RETOPO and not _check_retopo_material(material):
-        _setup_retopo_material(material)
-    elif name is MaterialName.WIRE and not _check_wire_material(material):
-        _setup_wire_material(material)
+    if name is MaterialName.REFERENCE:
+        if not _check_reference_material(material):
+            _setup_reference_material(material)
+
+    elif name is MaterialName.RETOPO:
+        if not _check_retopo_material(material):
+            _setup_retopo_material(material)
+
+    elif name is MaterialName.WIRE:
+        if not _check_wire_material(material):
+            _setup_wire_material(material)
 
     return material
 
