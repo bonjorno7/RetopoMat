@@ -10,8 +10,7 @@ class RetopoMatSettings(PropertyGroup):
     def _update_retopo_color(self, context: Context):
         material = get_material(MaterialName.RETOPO)
         node = material.node_tree.nodes['Emission']
-        socket = node.inputs['Color']
-        socket.default_value = self.retopo_color
+        node.inputs['Color'].default_value = self.retopo_color
 
     retopo_color: FloatVectorProperty(
         name='Retopo Color',
