@@ -15,6 +15,9 @@ class MaterialName(Enum):
     WIRE = 'RetopoMat Wire'
 
 
+_WIREFRAME_NAME = 'RetopoMat Wireframe'
+
+
 def check_material_slots(objects: List[Object]) -> bool:
     '''Check whether any of the given objects have multiple material slots.'''
     for object in objects:
@@ -184,15 +187,12 @@ def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Unio
     '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
     if object is None or object.type != 'MESH':
         return None
-
-    for modifier in reversed(object.modifiers):
-        if modifier.type == 'WIREFRAME':
-            return modifier
-
-    if not create:
+    elif _WIREFRAME_NAME in object.modifiers:
+        return object.modifiers[_WIREFRAME_NAME]
+    elif not create:
         return None
 
-    modifier: WireframeModifier = object.modifiers.new('Wireframe', 'WIREFRAME')
+    modifier: WireframeModifier = object.modifiers.new(_WIREFRAME_NAME, 'WIREFRAME')
     modifier.show_in_editmode = True
     modifier.offset = 0.0
     modifier.use_boundary = True
