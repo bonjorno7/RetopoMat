@@ -228,3 +228,15 @@ def flip_normals(object: Object):
         face.normal_flip()
 
     update_edit_mesh(object.data)
+
+
+def move_wireframe_to_bottom(object: Object):
+    '''Move our wireframe modifier to the bottom of the stack.'''
+    index = len(object.modifiers) - 1
+
+    try:  # Newer versions of Blender can use modifier_move_to_index.
+        bpy.ops.object.modifier_move_to_index(modifier=_WIREFRAME_NAME, index=index)
+
+    except:  # Older versions of Blender have to use modifier_move_down.
+        for _ in range(index - object.modifiers.find(_WIREFRAME_NAME)):
+            bpy.ops.object.modifier_move_down(modifier=_WIREFRAME_NAME)

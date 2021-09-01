@@ -2,7 +2,7 @@ from bpy.types import Context, Event, Operator
 from bpy.utils import register_class, unregister_class
 
 from .utils import (MaterialName, check_material_slots, flip_normals, get_material, get_wire_modifier,
-                    remove_wire_modifier, set_materials)
+                    move_wireframe_to_bottom, remove_wire_modifier, set_materials)
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -93,11 +93,29 @@ class FlipNormalsOperator(Operator):
         return {'FINISHED'}
 
 
+class MoveWireframeToBottomOperator(Operator):
+    bl_idname = 'retopomat.move_wireframe_to_bottom'
+    bl_label = 'Move Wireframe to Bottom'
+    bl_description = 'Move our wireframe modifier to the bottom of the stack'
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        return get_wire_modifier(context.active_object)
+
+    def execute(self, context: Context) -> set:
+        move_wireframe_to_bottom(context.active_object)
+
+        self.report({'INFO'}, 'Moved wireframe modifier to bottom')
+        return {'FINISHED'}
+
+
 classes = (
     AddReferenceMaterialOperator,
     AddRetopoMaterialOperator,
     RemoveMaterialsOperator,
     FlipNormalsOperator,
+    MoveWireframeToBottomOperator,
 )
 
 
