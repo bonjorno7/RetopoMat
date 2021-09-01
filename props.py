@@ -47,7 +47,7 @@ class RetopoMatSettings(PropertyGroup):
         description='Color of the retopo material',
         subtype='COLOR',
         size=4,
-        default=(0.9, 0.6, 0.0, 1.0),
+        default=(0.3, 0.6, 0.9, 1.0),
         min=0.0,
         max=1.0,
         update=_update_retopo_color,
