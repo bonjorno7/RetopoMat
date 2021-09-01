@@ -97,12 +97,12 @@ def _setup_reference_material(material: Material):
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
 
-    # TODO: Get color and alpha from settings.
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     _set_defaults(principled_node, {
-        'Base Color': (0.2, 0.2, 0.2, 1.0),
+        'Base Color': settings.reference_color,
+        'Alpha': settings.reference_opacity,
         'Roughness': 0.7,
         'Metallic': 1.0,
-        'Alpha': 0.8,
     })
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
@@ -146,8 +146,8 @@ def _setup_wire_material(material: Material):
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
     emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
 
-    # TODO: Get color from settings.
-    _set_defaults(emission_node, {'Color': (0, 0, 0, 1)})
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    _set_defaults(emission_node, {'Color': settings.wire_color})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 
