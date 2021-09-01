@@ -7,6 +7,22 @@ from .utils import MaterialName, get_material, get_wire_modifier
 
 class RetopoMatSettings(PropertyGroup):
 
+    def _update_reference_color(self, context: Context):
+        material = get_material(MaterialName.REFERENCE)
+        node = material.node_tree.nodes['Principled BSDF']
+        node.inputs['Base Color'].default_value = self.reference_color
+
+    reference_color: FloatVectorProperty(
+        name='Reference Color',
+        description='Color of the reference material',
+        subtype='COLOR',
+        size=4,
+        default=(0.2, 0.2, 0.2, 1.0),
+        min=0.0,
+        max=1.0,
+        update=_update_reference_color,
+    )
+
     def _update_retopo_color(self, context: Context):
         material = get_material(MaterialName.RETOPO)
         node = material.node_tree.nodes['Emission']
@@ -21,6 +37,22 @@ class RetopoMatSettings(PropertyGroup):
         min=0.0,
         max=1.0,
         update=_update_retopo_color,
+    )
+
+    def _update_wire_color(self, context: Context):
+        material = get_material(MaterialName.WIRE)
+        node = material.node_tree.nodes['Emission']
+        node.inputs['Color'].default_value = self.wire_color
+
+    wire_color: FloatVectorProperty(
+        name='Wire Color',
+        description='Color of the wire material',
+        subtype='COLOR',
+        size=4,
+        default=(0.0, 0.0, 0.0, 1.0),
+        min=0.0,
+        max=1.0,
+        update=_update_wire_color,
     )
 
     def _update_intensity(self, context: Context):
