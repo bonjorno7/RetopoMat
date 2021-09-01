@@ -144,16 +144,19 @@ def get_wire_modifier(object: Union[Object, None]) -> Union[WireframeModifier, N
     for modifier in reversed(object.modifiers):
         if modifier.type == 'WIREFRAME':
             return modifier
-    else:
-        modifier = object.modifiers.new('Wireframe', 'WIREFRAME')
 
-    modifier: WireframeModifier
+    modifier: WireframeModifier = object.modifiers.new('Wireframe', 'WIREFRAME')
     modifier.show_in_editmode = True
+    modifier.offset = 0.0
     modifier.use_boundary = True
     modifier.use_replace = False
-    modifier.use_even_offset = True
+    modifier.use_even_offset = False
     modifier.use_relative_offset = False
     modifier.use_crease = False
     modifier.material_offset = 1
+
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    modifier.show_viewport = settings.wire_visibility
+    modifier.thickness = settings.wire_thickness
 
     return modifier
