@@ -7,21 +7,21 @@ from .utils import MaterialName, get_material, get_wire_modifier
 
 class RetopoMatSettings(PropertyGroup):
 
-    def _update_color(self, context: Context):
+    def _update_retopo_color(self, context: Context):
         material = get_material(MaterialName.RETOPO)
         node = material.node_tree.nodes['Emission']
         socket = node.inputs['Color']
-        socket.default_value = self.color
+        socket.default_value = self.retopo_color
 
-    color: FloatVectorProperty(
-        name='Color',
+    retopo_color: FloatVectorProperty(
+        name='Retopo Color',
         description='Color of the retopo material',
         subtype='COLOR',
         size=4,
         default=(0.9, 0.6, 0.0, 1.0),
         min=0.0,
         max=1.0,
-        update=_update_color,
+        update=_update_retopo_color,
     )
 
     def _update_intensity(self, context: Context):
