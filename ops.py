@@ -1,7 +1,8 @@
 from bpy.types import Context, Event, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import MaterialName, check_material_slots, get_material, get_wire_modifier, set_materials
+from .utils import (MaterialName, check_material_slots, get_material, get_wire_modifier, remove_wire_modifier,
+                    set_materials)
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -58,7 +59,7 @@ class AddRetopoMaterialOperator(Operator):
 class RemoveMaterialsOperator(Operator):
     bl_idname = 'retopomat.remove_materials'
     bl_label = 'Remove Materials'
-    bl_description = 'Remove all materials from the active object'
+    bl_description = 'Remove all materials and the wireframe modifier from the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
@@ -68,6 +69,7 @@ class RemoveMaterialsOperator(Operator):
 
     def execute(self, context: Context) -> set:
         set_materials(context.active_object, [])
+        remove_wire_modifier(context.active_object)
 
         self.report({'INFO'}, 'Cleared materials')
         return {'FINISHED'}

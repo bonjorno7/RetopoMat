@@ -207,3 +207,10 @@ def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Unio
     modifier.thickness = settings.wire_thickness
 
     return modifier
+
+
+def remove_wire_modifier(object: Union[Object, None]):
+    modifier = get_wire_modifier(object)
+
+    if modifier is not None:
+        object.modifiers.remove(modifier)
