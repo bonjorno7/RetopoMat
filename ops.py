@@ -38,7 +38,7 @@ class AddReferenceMaterialOperator(Operator):
 class AddRetopoMaterialOperator(Operator):
     bl_idname = 'retopomat.add_retopo_material'
     bl_label = 'Add Retopo Material'
-    bl_description = 'Add a retopo material to the active object'
+    bl_description = 'Add retopo materials and wireframe modifier to the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
@@ -59,7 +59,7 @@ class AddRetopoMaterialOperator(Operator):
 class RemoveMaterialsOperator(Operator):
     bl_idname = 'retopomat.remove_materials'
     bl_label = 'Remove Materials'
-    bl_description = 'Remove all materials and the wireframe modifier from the active object'
+    bl_description = 'Remove all materials and our wireframe modifier from the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
