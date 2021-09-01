@@ -3,7 +3,8 @@ from traceback import print_exc
 from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
-from .ops import AddReferenceMaterialOperator, AddRetopoMaterialOperator, RemoveMaterialsOperator
+from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialOperator, FlipNormalsOperator,
+                  MoveWireframeToBottomOperator, RemoveMaterialsOperator)
 from .props import RetopoMatSettings
 
 
@@ -64,9 +65,21 @@ class SettingsPanel(RetopoMatPanel):
             print_exc()
 
 
+class UtilitiesPanel(RetopoMatPanel):
+    bl_idname = 'RETOPOMAT_PT_utilities'
+    bl_label = 'Utilities'
+
+    def draw(self, context: Context):
+        layout = self.configure_layout()
+
+        layout.operator(FlipNormalsOperator.bl_idname)
+        layout.operator(MoveWireframeToBottomOperator.bl_idname)
+
+
 classes = (
     MaterialsPanel,
     SettingsPanel,
+    UtilitiesPanel,
 )
 
 
