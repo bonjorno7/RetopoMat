@@ -84,9 +84,13 @@ class RetopoMatSettings(PropertyGroup):
     wire_thickness: FloatProperty(
         name='Wire Thickness',
         description='Thickness for the wireframe',
+        subtype='DISTANCE',
+        unit='LENGTH',
         default=0.5,
         soft_min=0.0,
         soft_max=1.0,
+        step=0.01,
+        precision=4,
         update=_update_wire_thickness,
     )
 
