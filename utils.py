@@ -183,19 +183,18 @@ def _set_defaults(node: ShaderNode, defaults: dict):
 
 def set_materials(object: Object, materials: List[Material]):
     '''Clear materials, then add the given materials.'''
-    if object is None or object.type != 'MESH':
-        return
+    if (object is not None) and (object.type == 'MESH'):
+        data: Mesh = object.data
 
-    data: Mesh = object.data
-    data.materials.clear()
+        data.materials.clear()
 
-    for material in materials:
-        data.materials.append(material)
+        for material in materials:
+            data.materials.append(material)
 
 
 def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Union[WireframeModifier, None]:
     '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
-    if object is None or object.type != 'MESH':
+    if (object is None) or (object.type != 'MESH'):
         return None
     elif _WIREFRAME_NAME in object.modifiers:
         return object.modifiers[_WIREFRAME_NAME]
