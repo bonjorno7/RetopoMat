@@ -26,15 +26,15 @@ def check_material_slots(object: Object) -> bool:
     return len(data.materials) > 1
 
 
+def get_material(object: Union[Object, None], name: MaterialName, create: bool = False) -> Union[Material, None]:
+    '''Get a material with the given name from the given mesh object, create it if necessary.'''
+    material = _find_material(object, name)
 
-def get_material(name: MaterialName, create: bool = False) -> Union[Material, None]:
-    '''Get a material with the given name, create it if necessary.'''
-    if name.value in bpy.data.materials:
-        material = bpy.data.materials[name.value]
-    elif create:
-        material = bpy.data.materials.new(name.value)
-    else:
-        return None
+    if material is None:
+        if create:
+            material = bpy.data.materials.new(name.value)
+        else:
+            return None
 
     if name is MaterialName.REFERENCE:
         if not _check_reference_material(material):
@@ -49,6 +49,20 @@ def get_material(name: MaterialName, create: bool = False) -> Union[Material, No
             _setup_wire_material(material)
 
     return material
+
+
+def _find_material(object: Union[Object, None], name: MaterialName) -> Union[Material, None]:
+    '''Try to find the material with the given name on the given mesh object.'''
+    if (object is not None) and (object.type == 'MESH'):
+        data: Mesh = object.data
+
+        for material in data.materials:
+            material: Material
+
+            if material.name.startswith(name.value):
+                return material
+
+    return None
 
 
 def _check_reference_material(material: Material) -> bool:

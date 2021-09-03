@@ -30,8 +30,8 @@ class AddReferenceMaterialOperator(Operator):
             return self.execute(context)
 
     def execute(self, context: Context) -> set:
-        material = get_material(MaterialName.REFERENCE, create=True)
         object: Object = context.active_object
+        material = get_material(object, MaterialName.REFERENCE, create=True)
         set_materials(object, [material])
 
         self.report({'INFO'}, 'Added reference material')
@@ -50,9 +50,9 @@ class AddRetopoMaterialOperator(Operator):
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def execute(self, context: Context) -> set:
-        retopo_material = get_material(MaterialName.RETOPO, create=True)
-        wire_material = get_material(MaterialName.WIRE, create=True)
         object: Object = context.active_object
+        retopo_material = get_material(object, MaterialName.RETOPO, create=True)
+        wire_material = get_material(object, MaterialName.WIRE, create=True)
         set_materials(object, [retopo_material, wire_material])
         get_wire_modifier(object, create=True)
 
