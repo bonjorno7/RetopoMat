@@ -53,8 +53,11 @@ class SettingsPanel(RetopoMatPanel):
         sub.prop(settings, 'wire_color')
         sub.prop(settings, 'wire_thickness')
 
+        layout.separator()
+
         try:
-            sub.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
+            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex', text='Vertex Color')
+            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
         except:
             print_exc()
 
