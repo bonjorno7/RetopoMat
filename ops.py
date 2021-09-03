@@ -1,4 +1,4 @@
-from bpy.types import Context, Event, Operator
+from bpy.types import Context, Event, Object, Operator
 from bpy.utils import register_class, unregister_class
 
 from .utils import (MaterialName, check_material_slots, flip_normals, get_material, get_wire_modifier,
@@ -22,7 +22,9 @@ class AddReferenceMaterialOperator(Operator):
         sub.label(text='This operation will remove them.')
 
     def invoke(self, context: Context, event: Event) -> set:
-        if check_material_slots(context.selected_objects):
+        object: Object = context.active_object
+
+        if check_material_slots(object):
             return context.window_manager.invoke_props_dialog(self)
         else:
             return self.execute(context)

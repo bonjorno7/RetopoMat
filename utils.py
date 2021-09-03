@@ -20,17 +20,11 @@ class MaterialName(Enum):
 _WIREFRAME_NAME = 'RetopoMat Wireframe'
 
 
-def check_material_slots(objects: List[Object]) -> bool:
-    '''Check whether any of the given objects have multiple material slots.'''
-    for object in objects:
-        if object.type != 'MESH':
-            continue
+def check_material_slots(object: Object) -> bool:
+    '''Check whether the given object has multiple material slots.'''
+    data: Mesh = object.data
+    return len(data.materials) > 1
 
-        data: Mesh = object.data
-        if len(data.materials) > 1:
-            return True
-
-    return False
 
 
 def get_material(name: MaterialName, create: bool = False) -> Union[Material, None]:
