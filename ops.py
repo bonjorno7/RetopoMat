@@ -13,7 +13,7 @@ class AddReferenceMaterialOperator(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        object = context.active_object
+        object: Object = context.active_object
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def draw(self, context: Context):
@@ -31,7 +31,8 @@ class AddReferenceMaterialOperator(Operator):
 
     def execute(self, context: Context) -> set:
         material = get_material(MaterialName.REFERENCE, create=True)
-        set_materials(context.active_object, [material])
+        object: Object = context.active_object
+        set_materials(object, [material])
 
         self.report({'INFO'}, 'Added reference material')
         return {'FINISHED'}
@@ -45,14 +46,15 @@ class AddRetopoMaterialOperator(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        object = context.active_object
+        object: Object = context.active_object
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def execute(self, context: Context) -> set:
         retopo_material = get_material(MaterialName.RETOPO, create=True)
         wire_material = get_material(MaterialName.WIRE, create=True)
-        set_materials(context.active_object, [retopo_material, wire_material])
-        get_wire_modifier(context.active_object, create=True)
+        object: Object = context.active_object
+        set_materials(object, [retopo_material, wire_material])
+        get_wire_modifier(object, create=True)
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}
@@ -66,12 +68,13 @@ class RemoveMaterialsOperator(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        object = context.active_object
+        object: Object = context.active_object
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
     def execute(self, context: Context) -> set:
-        set_materials(context.active_object, [])
-        remove_wire_modifier(context.active_object)
+        object: Object = context.active_object
+        set_materials(object, [])
+        remove_wire_modifier(object)
 
         self.report({'INFO'}, 'Cleared materials')
         return {'FINISHED'}
@@ -85,11 +88,12 @@ class FlipNormalsOperator(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        object = context.active_object
+        object: Object = context.active_object
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'EDIT')
 
     def execute(self, context: Context) -> set:
-        flip_normals(context.active_object)
+        object: Object = context.active_object
+        flip_normals(object)
 
         self.report({'INFO'}, 'Flipped normals')
         return {'FINISHED'}
@@ -103,10 +107,12 @@ class MoveWireframeToBottomOperator(Operator):
 
     @classmethod
     def poll(cls, context: Context) -> bool:
-        return get_wire_modifier(context.active_object)
+        object: Object = context.active_object
+        return get_wire_modifier(object)
 
     def execute(self, context: Context) -> set:
-        move_wireframe_to_bottom(context.active_object)
+        object: Object = context.active_object
+        move_wireframe_to_bottom(object)
 
         self.report({'INFO'}, 'Moved wireframe modifier to bottom')
         return {'FINISHED'}
