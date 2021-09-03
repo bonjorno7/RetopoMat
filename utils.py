@@ -1,9 +1,9 @@
 from enum import Enum
 from typing import TYPE_CHECKING, List, Tuple, Union
 
+import bpy
 from bmesh import from_edit_mesh, update_edit_mesh
 from bmesh.types import BMFace
-import bpy
 from bpy.types import (Material, Mesh, Object, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission,
                        ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, WireframeModifier)
 
@@ -113,12 +113,8 @@ def _setup_reference_material(material: Material):
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(principled_node, {
-        'Base Color': settings.reference_color,
-        'Alpha': settings.reference_color[3],
-        'Roughness': 0.7,
-        'Metallic': 1.0,
-    })
+    color = settings.get_internal('reference_color')
+    _set_defaults(principled_node, {'Base Color': color, 'Alpha': color[3], 'Roughness': 0.7, 'Metallic': 1.0})
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
 
@@ -140,7 +136,7 @@ def _setup_retopo_material(material: Material):
     geometry_node = _add_node(material, ShaderNodeNewGeometry, (-600, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.retopo_color})
+    _set_defaults(emission_node, {'Color': settings.get_internal('retopo_color')})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
     material.node_tree.links.new(emission_node.inputs['Strength'], invert_node.outputs['Color'])
@@ -162,7 +158,7 @@ def _setup_wire_material(material: Material):
     emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.wire_color})
+    _set_defaults(emission_node, {'Color': settings.get_internal('wire_color')})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 
@@ -212,8 +208,8 @@ def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Unio
     modifier.material_offset = 1
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    modifier.show_viewport = settings.wire_visibility
-    modifier.thickness = settings.wire_thickness
+    modifier.show_viewport = settings.get_internal('wire_visibility')
+    modifier.thickness = settings.get_internal('wire_thickness')
 
     return modifier
 
