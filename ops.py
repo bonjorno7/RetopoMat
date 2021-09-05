@@ -55,8 +55,8 @@ class AddRetopoMaterialOperator(Operator):
         wireframe_material = get_material(object, MaterialName.WIREFRAME, create=True)
         set_materials(object, [retopo_material, wireframe_material])
 
-        # get_modifier(object, ModifierName.DISPLACE, create=True)
-        # get_modifier(object, ModifierName.SOLIDIFY, create=True)
+        get_modifier(object, ModifierName.DISPLACE, create=True)
+        get_modifier(object, ModifierName.SOLIDIFY, create=True)
         get_modifier(object, ModifierName.WIREFRAME, create=True)
 
         self.report({'INFO'}, 'Added retopo material')

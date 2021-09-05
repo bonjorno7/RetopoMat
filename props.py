@@ -125,6 +125,120 @@ class RetopoMatSettings(PropertyGroup):
         set=_set_wireframe_color,
     )
 
+    def _get_displace_visibility(self) -> bool:
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.DISPLACE)
+
+        if modifier is not None:
+            return modifier.show_viewport
+
+        return self.get_internal('displace_visibility')
+
+    def _set_displace_visibility(self, value: bool):
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.DISPLACE)
+
+        if modifier is not None:
+            modifier.show_viewport = value
+
+        self.set_internal('displace_visibility', value)
+
+    displace_visibility: BoolProperty(
+        name='Displace Visibility',
+        description='Whether to show the displace modifier',
+        default=False,
+        get=_get_displace_visibility,
+        set=_set_displace_visibility,
+    )
+
+    def _get_displace_strength(self) -> float:
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.DISPLACE)
+
+        if modifier is not None:
+            return modifier.strength
+
+        return self.get_internal('displace_strength')
+
+    def _set_displace_strength(self, value: float):
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.DISPLACE)
+
+        if modifier is not None:
+            modifier.strength = value
+
+        self.set_internal('displace_strength', value)
+
+    displace_strength: FloatProperty(
+        name='Displace Strength',
+        description='Strength for the displace modifier',
+        subtype='DISTANCE',
+        unit='LENGTH',
+        default=0.02,
+        soft_min=0.0,
+        soft_max=1.0,
+        step=0.01,
+        get=_get_displace_strength,
+        set=_set_displace_strength,
+    )
+
+    def _get_solidify_visibility(self) -> bool:
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.SOLIDIFY)
+
+        if modifier is not None:
+            return modifier.show_viewport
+
+        return self.get_internal('solidify_visibility')
+
+    def _set_solidify_visibility(self, value: bool):
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.SOLIDIFY)
+
+        if modifier is not None:
+            modifier.show_viewport = value
+
+        self.set_internal('solidify_visibility', value)
+
+    solidify_visibility: BoolProperty(
+        name='Solidify Visibility',
+        description='Whether to show the solidify modifier',
+        default=False,
+        get=_get_solidify_visibility,
+        set=_set_solidify_visibility,
+    )
+
+    def _get_solidify_thickness(self) -> float:
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.SOLIDIFY)
+
+        if modifier is not None:
+            return modifier.thickness
+
+        return self.get_internal('solidify_thickness')
+
+    def _set_solidify_thickness(self, value: float):
+        object: Object = bpy.context.active_object
+        modifier = get_modifier(object, ModifierName.SOLIDIFY)
+
+        if modifier is not None:
+            modifier.thickness = value
+
+        self.set_internal('solidify_thickness', value)
+
+    solidify_thickness: FloatProperty(
+        name='Solidify Thickness',
+        description='Thickness for the solidify modifier',
+        subtype='DISTANCE',
+        unit='LENGTH',
+        default=0.02,
+        soft_min=0.0,
+        soft_max=1.0,
+        step=0.01,
+        get=_get_solidify_thickness,
+        set=_set_solidify_thickness,
+    )
+
     def _get_wireframe_visibility(self) -> bool:
         object: Object = bpy.context.active_object
         modifier = get_modifier(object, ModifierName.WIREFRAME)
