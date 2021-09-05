@@ -19,6 +19,23 @@ class RetopoMatPanel(Panel):
         layout.use_property_decorate = False
         return layout
 
+    def row_with_heading(self, layout: UILayout, heading: str) -> UILayout:
+        try:  # Newer versions of Blender can use heading.
+            return layout.row(heading=heading)
+
+        except:  # Older version of Blender have to use split.
+            split = layout.row().split(factor=0.4)
+            split.use_property_split = False
+            split.use_property_decorate = True
+
+            left = split.row()
+            left.alignment = 'RIGHT'
+            left.label(text=heading)
+
+            right = split.row()
+            right.alignment = 'LEFT'
+            return right
+
 
 class MaterialsPanel(RetopoMatPanel):
     bl_idname = 'RETOPOMAT_PT_materials'
@@ -42,16 +59,29 @@ class SettingsPanel(RetopoMatPanel):
         layout = self.configure_layout().column()
         settings: RetopoMatSettings = context.scene.retopo_mat
 
-        layout.prop(settings, 'reference_color')
-        layout.prop(settings, 'retopo_color')
+        layout.prop(settings, 'reference_color', text='Reference')
+        layout.prop(settings, 'retopo_color', text='Retopo')
+        layout.prop(settings, 'wireframe_color', text='Wireframe')
 
         layout.separator()
 
-        layout.prop(settings, 'wireframe_visibility')
-        sub = layout.column()
+        row = self.row_with_heading(layout, 'Displace')
+        row.prop(settings, 'displace_visibility', text='')
+        sub = row.row()
         sub.enabled = settings.wireframe_visibility
-        sub.prop(settings, 'wireframe_color')
-        sub.prop(settings, 'wireframe_thickness')
+        sub.prop(settings, 'displace_strength', text='')
+
+        row = self.row_with_heading(layout, 'Solidify')
+        row.prop(settings, 'solidify_visibility', text='')
+        sub = row.row()
+        sub.enabled = settings.wireframe_visibility
+        sub.prop(settings, 'solidify_thickness', text='')
+
+        row = self.row_with_heading(layout, 'Wireframe')
+        row.prop(settings, 'wireframe_visibility', text='')
+        sub = row.row()
+        sub.enabled = settings.wireframe_visibility
+        sub.prop(settings, 'wireframe_thickness', text='')
 
         layout.separator()
 
