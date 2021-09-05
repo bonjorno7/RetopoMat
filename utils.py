@@ -221,8 +221,9 @@ def _find_modifier(object: Union[Object, None], name: MaterialName) -> Union[Mod
 def _setup_displace_modifier(modifier: DisplaceModifier):
     '''Setup the displace modifier.'''
     modifier.show_in_editmode = True
+    modifier.show_on_cage = True
     modifier.direction = 'NORMAL'
-    modifier.mid_level = 0.5
+    modifier.mid_level = 0.0
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     modifier.show_viewport = settings.get_internal('displace_visibility')
@@ -232,6 +233,7 @@ def _setup_displace_modifier(modifier: DisplaceModifier):
 def _setup_solidify_modifier(modifier: SolidifyModifier):
     '''Setup the solidify modifier.'''
     modifier.show_in_editmode = True
+    modifier.show_on_cage = True
     modifier.offset = 1.0
     modifier.use_even_offset = False
     modifier.use_rim = True
@@ -247,6 +249,7 @@ def _setup_solidify_modifier(modifier: SolidifyModifier):
 def _setup_wireframe_modifier(modifier: WireframeModifier):
     '''Setup the wireframe modifier.'''
     modifier.show_in_editmode = True
+    modifier.show_on_cage = False
     modifier.offset = 0.0
     modifier.use_boundary = True
     modifier.use_replace = False
