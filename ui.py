@@ -24,7 +24,7 @@ class RetopoMatPanel(Panel):
             return layout.row(heading=heading)
 
         except:  # Older version of Blender have to use split.
-            split = layout.row().split(factor=0.4)
+            split = layout.row().split()
             split.use_property_split = False
             split.use_property_decorate = True
 
@@ -33,7 +33,7 @@ class RetopoMatPanel(Panel):
             left.label(text=heading)
 
             right = split.row()
-            right.alignment = 'LEFT'
+            right.alignment = 'EXPAND'
             return right
 
 
