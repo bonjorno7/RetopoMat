@@ -68,13 +68,13 @@ class SettingsPanel(RetopoMatPanel):
         row = self.row_with_heading(layout, 'Displace')
         row.prop(settings, 'displace_visibility', text='')
         sub = row.row()
-        sub.enabled = settings.wireframe_visibility
+        sub.enabled = settings.displace_visibility
         sub.prop(settings, 'displace_strength', text='')
 
         row = self.row_with_heading(layout, 'Solidify')
         row.prop(settings, 'solidify_visibility', text='')
         sub = row.row()
-        sub.enabled = settings.wireframe_visibility
+        sub.enabled = settings.solidify_visibility
         sub.prop(settings, 'solidify_thickness', text='')
 
         row = self.row_with_heading(layout, 'Wireframe')
