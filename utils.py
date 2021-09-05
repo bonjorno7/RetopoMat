@@ -24,12 +24,6 @@ class ModifierName(Enum):
     WIREFRAME = 'RetopoMat Wireframe'
 
 
-def check_material_slots(object: Object) -> bool:
-    '''Check whether the given object has multiple material slots.'''
-    data: Mesh = object.data
-    return len(data.materials) > 1
-
-
 def get_material(object: Union[Object, None], name: MaterialName, create: bool = False) -> Union[Material, None]:
     '''Get a material with the given name from the given mesh object, create it if necessary.'''
     material = _find_material(object, name)

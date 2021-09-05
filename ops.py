@@ -1,14 +1,17 @@
-from bpy.types import Context, Event, Object, Operator
+from bpy.types import Context, Object, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import (MaterialName, ModifierName, check_material_slots, flip_normals, get_material, get_modifier,
-                    move_modifiers_to_bottom, remove_modifiers, set_materials)
+from .utils import (MaterialName, ModifierName, flip_normals, get_material, get_modifier, move_modifiers_to_bottom,
+                    remove_modifiers, set_materials)
 
 
 class AddReferenceMaterialOperator(Operator):
     bl_idname = 'retopomat.add_reference_material'
     bl_label = 'Add Reference Material'
-    bl_description = 'Add a reference material to the active object'
+    bl_description = '.\n'.join((
+        'Add a reference material to the active object',
+        'This removes your material slots and retopo modifiers',
+    ))
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
@@ -16,23 +19,11 @@ class AddReferenceMaterialOperator(Operator):
         object: Object = context.active_object
         return (object is not None) and (object.type == 'MESH') and (object.mode == 'OBJECT')
 
-    def draw(self, context: Context):
-        sub = self.layout.box().column()
-        sub.label(text='Your object has mutliple material slots.')
-        sub.label(text='This operation will remove them.')
-
-    def invoke(self, context: Context, event: Event) -> set:
-        object: Object = context.active_object
-
-        if check_material_slots(object):
-            return context.window_manager.invoke_props_dialog(self)
-        else:
-            return self.execute(context)
-
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
         material = get_material(object, MaterialName.REFERENCE, create=True)
         set_materials(object, [material])
+        remove_modifiers(object)
 
         self.report({'INFO'}, 'Added reference material')
         return {'FINISHED'}
