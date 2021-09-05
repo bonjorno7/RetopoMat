@@ -5,7 +5,7 @@ from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerP
 from bpy.types import Object, PropertyGroup, Scene
 from bpy.utils import register_class, unregister_class
 
-from .utils import MaterialName, get_material, get_wire_modifier
+from .utils import MaterialName, ModifierName, get_material, get_modifier
 
 
 class RetopoMatSettings(PropertyGroup):
@@ -92,96 +92,94 @@ class RetopoMatSettings(PropertyGroup):
         set=_set_retopo_color,
     )
 
-    def _get_wire_color(self) -> tuple:
+    def _get_wireframe_color(self) -> tuple:
         object: Object = bpy.context.active_object
-        material = get_material(object, MaterialName.WIRE)
+        material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
             node = material.node_tree.nodes['Emission']
             color = node.inputs['Color'].default_value[:3]
             return color + (1.0,)
 
-        return self.get_internal('wire_color')[:3] + (1.0,)
+        return self.get_internal('wireframe_color')[:3] + (1.0,)
 
-    def _set_wire_color(self, value: tuple):
+    def _set_wireframe_color(self, value: tuple):
         object: Object = bpy.context.active_object
-        material = get_material(object, MaterialName.WIRE)
+        material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
             node = material.node_tree.nodes['Emission']
             node.inputs['Color'].default_value = value[:3] + (1.0,)
 
-        self.set_internal('wire_color', value[:3] + (1.0,))
+        self.set_internal('wireframe_color', value[:3] + (1.0,))
 
-    wire_color: FloatVectorProperty(
-        name='Wire Color',
-        description='Color of the wire material',
+    wireframe_color: FloatVectorProperty(
+        name='Wireframe Color',
+        description='Color of the wireframe material',
         subtype='COLOR',
         size=4,
         default=(0.0, 0.0, 0.0, 1.0),
         min=0.0,
         max=1.0,
-        get=_get_wire_color,
-        set=_set_wire_color,
+        get=_get_wireframe_color,
+        set=_set_wireframe_color,
     )
 
-    def _get_wire_visibility(self) -> bool:
+    def _get_wireframe_visibility(self) -> bool:
         object: Object = bpy.context.active_object
-        modifier = get_wire_modifier(object)
+        modifier = get_modifier(object, ModifierName.WIREFRAME)
 
         if modifier is not None:
             return modifier.show_viewport
 
-        default = self.bl_rna.properties['wire_visibility'].default
-        return self.get('wire_visibility', default)
+        return self.get_internal('wireframe_visibility')
 
-    def _set_wire_visibility(self, value: bool):
+    def _set_wireframe_visibility(self, value: bool):
         object: Object = bpy.context.active_object
-        modifier = get_wire_modifier(object)
+        modifier = get_modifier(object, ModifierName.WIREFRAME)
 
         if modifier is not None:
             modifier.show_viewport = value
 
-        self['wire_visibility'] = value
+        self.set_internal('wireframe_visibility', value)
 
-    wire_visibility: BoolProperty(
-        name='Wire Visibility',
-        description='Whether to show the wireframe',
+    wireframe_visibility: BoolProperty(
+        name='Wireframe Visibility',
+        description='Whether to show the wireframe modifier',
         default=True,
-        get=_get_wire_visibility,
-        set=_set_wire_visibility,
+        get=_get_wireframe_visibility,
+        set=_set_wireframe_visibility,
     )
 
-    def _get_wire_thickness(self) -> float:
+    def _get_wireframe_thickness(self) -> float:
         object: Object = bpy.context.active_object
-        modifier = get_wire_modifier(object)
+        modifier = get_modifier(object, ModifierName.WIREFRAME)
 
         if modifier is not None:
             return modifier.thickness
 
-        default = self.bl_rna.properties['wire_thickness'].default
-        return self.get('wire_thickness', default)
+        return self.get_internal('wireframe_thickness')
 
-    def _set_wire_thickness(self, value: float):
+    def _set_wireframe_thickness(self, value: float):
         object: Object = bpy.context.active_object
-        modifier = get_wire_modifier(object)
+        modifier = get_modifier(object, ModifierName.WIREFRAME)
 
         if modifier is not None:
             modifier.thickness = value
 
-        self['wire_thickness'] = value
+        self.set_internal('wireframe_thickness', value)
 
-    wire_thickness: FloatProperty(
-        name='Wire Thickness',
-        description='Thickness for the wireframe',
+    wireframe_thickness: FloatProperty(
+        name='Wireframe Thickness',
+        description='Thickness for the wireframe modifier',
         subtype='DISTANCE',
         unit='LENGTH',
         default=0.02,
         soft_min=0.0,
         soft_max=1.0,
         step=0.01,
-        get=_get_wire_thickness,
-        set=_set_wire_thickness,
+        get=_get_wireframe_thickness,
+        set=_set_wireframe_thickness,
     )
 
 

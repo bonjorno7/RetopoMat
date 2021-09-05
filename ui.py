@@ -4,7 +4,7 @@ from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
 from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialOperator, FlipNormalsOperator,
-                  MoveWireframeToBottomOperator, RemoveMaterialsOperator)
+                  MoveModifiersToBottomOperator, RemoveMaterialsOperator)
 from .props import RetopoMatSettings
 
 
@@ -47,11 +47,11 @@ class SettingsPanel(RetopoMatPanel):
 
         layout.separator()
 
-        layout.prop(settings, 'wire_visibility')
+        layout.prop(settings, 'wireframe_visibility')
         sub = layout.column()
-        sub.enabled = settings.wire_visibility
-        sub.prop(settings, 'wire_color')
-        sub.prop(settings, 'wire_thickness')
+        sub.enabled = settings.wireframe_visibility
+        sub.prop(settings, 'wireframe_color')
+        sub.prop(settings, 'wireframe_thickness')
 
         layout.separator()
 
@@ -78,8 +78,8 @@ class UtilitiesPanel(RetopoMatPanel):
     def draw(self, context: Context):
         layout = self.configure_layout()
 
+        layout.operator(MoveModifiersToBottomOperator.bl_idname)
         layout.operator(FlipNormalsOperator.bl_idname)
-        layout.operator(MoveWireframeToBottomOperator.bl_idname)
 
 
 classes = (

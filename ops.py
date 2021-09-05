@@ -1,8 +1,8 @@
 from bpy.types import Context, Event, Object, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import (MaterialName, check_material_slots, flip_normals, get_material, get_wire_modifier,
-                    move_wireframe_to_bottom, remove_wire_modifier, set_materials)
+from .utils import (MaterialName, ModifierName, check_material_slots, flip_normals, get_material, get_modifier,
+                    move_modifiers_to_bottom, remove_modifiers, set_materials)
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -41,7 +41,7 @@ class AddReferenceMaterialOperator(Operator):
 class AddRetopoMaterialOperator(Operator):
     bl_idname = 'retopomat.add_retopo_material'
     bl_label = 'Add Retopo Material'
-    bl_description = 'Add retopo materials and wireframe modifier to the active object'
+    bl_description = 'Add retopo materials and modifiers to the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
@@ -52,9 +52,12 @@ class AddRetopoMaterialOperator(Operator):
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
         retopo_material = get_material(object, MaterialName.RETOPO, create=True)
-        wire_material = get_material(object, MaterialName.WIRE, create=True)
-        set_materials(object, [retopo_material, wire_material])
-        get_wire_modifier(object, create=True)
+        wireframe_material = get_material(object, MaterialName.WIREFRAME, create=True)
+        set_materials(object, [retopo_material, wireframe_material])
+
+        # get_modifier(object, ModifierName.DISPLACE, create=True)
+        # get_modifier(object, ModifierName.SOLIDIFY, create=True)
+        get_modifier(object, ModifierName.WIREFRAME, create=True)
 
         self.report({'INFO'}, 'Added retopo material')
         return {'FINISHED'}
@@ -63,7 +66,7 @@ class AddRetopoMaterialOperator(Operator):
 class RemoveMaterialsOperator(Operator):
     bl_idname = 'retopomat.remove_materials'
     bl_label = 'Remove Materials'
-    bl_description = 'Remove all materials and our wireframe modifier from the active object'
+    bl_description = 'Remove all materials and retopo modifiers from the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
@@ -74,9 +77,28 @@ class RemoveMaterialsOperator(Operator):
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
         set_materials(object, [])
-        remove_wire_modifier(object)
+        remove_modifiers(object)
 
         self.report({'INFO'}, 'Cleared materials')
+        return {'FINISHED'}
+
+
+class MoveModifiersToBottomOperator(Operator):
+    bl_idname = 'retopomat.move_modifiers_to_bottom'
+    bl_label = 'Move Modifiers to Bottom'
+    bl_description = 'Move retopo modifiers to the bottom of the stack'
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        object: Object = context.active_object
+        return (object is not None) and (object.type == 'MESH')
+
+    def execute(self, context: Context) -> set:
+        object: Object = context.active_object
+        move_modifiers_to_bottom(object)
+
+        self.report({'INFO'}, 'Moved retopo modifiers to bottom')
         return {'FINISHED'}
 
 
@@ -99,31 +121,12 @@ class FlipNormalsOperator(Operator):
         return {'FINISHED'}
 
 
-class MoveWireframeToBottomOperator(Operator):
-    bl_idname = 'retopomat.move_wireframe_to_bottom'
-    bl_label = 'Move Wireframe to Bottom'
-    bl_description = 'Move our wireframe modifier to the bottom of the stack'
-    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
-
-    @classmethod
-    def poll(cls, context: Context) -> bool:
-        object: Object = context.active_object
-        return get_wire_modifier(object)
-
-    def execute(self, context: Context) -> set:
-        object: Object = context.active_object
-        move_wireframe_to_bottom(object)
-
-        self.report({'INFO'}, 'Moved wireframe modifier to bottom')
-        return {'FINISHED'}
-
-
 classes = (
     AddReferenceMaterialOperator,
     AddRetopoMaterialOperator,
     RemoveMaterialsOperator,
+    MoveModifiersToBottomOperator,
     FlipNormalsOperator,
-    MoveWireframeToBottomOperator,
 )
 
 

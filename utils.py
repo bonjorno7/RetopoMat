@@ -4,8 +4,9 @@ from typing import TYPE_CHECKING, List, Tuple, Union
 import bpy
 from bmesh import from_edit_mesh, update_edit_mesh
 from bmesh.types import BMFace
-from bpy.types import (Material, Mesh, Object, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission,
-                       ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, WireframeModifier)
+from bpy.types import (DisplaceModifier, Material, Mesh, Modifier, Object, ShaderNode, ShaderNodeBsdfPrincipled,
+                       ShaderNodeEmission, ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial,
+                       SolidifyModifier, WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -14,10 +15,13 @@ if TYPE_CHECKING:
 class MaterialName(Enum):
     REFERENCE = 'RetopoMat Reference'
     RETOPO = 'RetopoMat Retopo'
-    WIRE = 'RetopoMat Wire'
+    WIREFRAME = 'RetopoMat Wireframe'
 
 
-_WIREFRAME_NAME = 'RetopoMat Wireframe'
+class ModifierName(Enum):
+    DISPLACE = 'RetopoMat Displace'
+    SOLIDIFY = 'RetopoMat Solidify'
+    WIREFRAME = 'RetopoMat Wireframe'
 
 
 def check_material_slots(object: Object) -> bool:
@@ -44,9 +48,9 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
         if not _check_retopo_material(material):
             _setup_retopo_material(material)
 
-    elif name is MaterialName.WIRE:
-        if not _check_wire_material(material):
-            _setup_wire_material(material)
+    elif name is MaterialName.WIREFRAME:
+        if not _check_wireframe_material(material):
+            _setup_wireframe_material(material)
 
     return material
 
@@ -87,8 +91,8 @@ def _check_retopo_material(material: Material) -> bool:
     return True
 
 
-def _check_wire_material(material: Material) -> bool:
-    '''Check whether the wire material is valid.'''
+def _check_wireframe_material(material: Material) -> bool:
+    '''Check whether the wireframe material is valid.'''
     if not material.use_nodes:
         return False
 
@@ -143,8 +147,8 @@ def _setup_retopo_material(material: Material):
     material.node_tree.links.new(invert_node.inputs['Color'], geometry_node.outputs['Backfacing'])
 
 
-def _setup_wire_material(material: Material):
-    '''Setup the wire material.'''
+def _setup_wireframe_material(material: Material):
+    '''Setup the wireframe material.'''
     material.blend_method = 'OPAQUE'
     material.shadow_method = 'NONE'
 
@@ -158,7 +162,7 @@ def _setup_wire_material(material: Material):
     emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.get_internal('wire_color')})
+    _set_defaults(emission_node, {'Color': settings.get_internal('wireframe_color')})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 
@@ -188,16 +192,60 @@ def set_materials(object: Object, materials: List[Material]):
             data.materials.append(material)
 
 
-def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Union[WireframeModifier, None]:
-    '''Get the last wireframe modifier for the given mesh object, create it if necessary.'''
-    if (object is None) or (object.type != 'MESH'):
-        return None
-    elif _WIREFRAME_NAME in object.modifiers:
-        return object.modifiers[_WIREFRAME_NAME]
-    elif not create:
-        return None
+def get_modifier(object: Union[Object, None], name: ModifierName, create: bool = False) -> Union[Modifier, None]:
+    '''Get a modifier with the given name from the given mesh object, create it if necessary.'''
+    modifier = _find_modifier(object, name)
 
-    modifier: WireframeModifier = object.modifiers.new(_WIREFRAME_NAME, 'WIREFRAME')
+    if modifier is None and create:
+        modifier = object.modifiers.new(name.value, name.name)
+
+        if name == ModifierName.DISPLACE:
+            _setup_displace_modifier(modifier)
+        elif name == ModifierName.SOLIDIFY:
+            _setup_solidify_modifier(modifier)
+        elif name == ModifierName.WIREFRAME:
+            _setup_wireframe_modifier(modifier)
+
+    return modifier
+
+
+def _find_modifier(object: Union[Object, None], name: MaterialName) -> Union[Modifier, None]:
+    '''Try to find the modifier with the given name on the given mesh object.'''
+    if (object is not None) and (object.type == 'MESH'):
+        if name.value in object.modifiers:
+            return object.modifiers[name.value]
+
+    return None
+
+
+def _setup_displace_modifier(modifier: DisplaceModifier):
+    '''Setup the displace modifier.'''
+    modifier.show_in_editmode = True
+    modifier.direction = 'NORMAL'
+    modifier.mid_level = 0.5
+
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    modifier.show_viewport = settings.get_internal('displace_visibility')
+    modifier.strength = settings.get_internal('displace_strength')
+
+
+def _setup_solidify_modifier(modifier: SolidifyModifier):
+    '''Setup the solidify modifier.'''
+    modifier.show_in_editmode = True
+    modifier.offset = 1.0
+    modifier.use_even_offset = False
+    modifier.use_rim = True
+    modifier.use_rim_only = True
+    modifier.material_offset = 1
+    modifier.material_offset_rim = 1
+
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    modifier.show_viewport = settings.get_internal('solidify_visibility')
+    modifier.thickness = settings.get_internal('solidify_thickness')
+
+
+def _setup_wireframe_modifier(modifier: WireframeModifier):
+    '''Setup the wireframe modifier.'''
     modifier.show_in_editmode = True
     modifier.offset = 0.0
     modifier.use_boundary = True
@@ -208,18 +256,33 @@ def get_wire_modifier(object: Union[Object, None], create: bool = False) -> Unio
     modifier.material_offset = 1
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    modifier.show_viewport = settings.get_internal('wire_visibility')
-    modifier.thickness = settings.get_internal('wire_thickness')
-
-    return modifier
+    modifier.show_viewport = settings.get_internal('wireframe_visibility')
+    modifier.thickness = settings.get_internal('wireframe_thickness')
 
 
-def remove_wire_modifier(object: Union[Object, None]):
-    '''Remove our wireframe modifier from the given object.'''
-    modifier = get_wire_modifier(object)
+def remove_modifiers(object: Object):
+    '''Remove retopo modifiers with from the given object.'''
+    for name in ModifierName:
+        modifier = _find_modifier(object, name)
 
-    if modifier is not None:
-        object.modifiers.remove(modifier)
+        if modifier is not None:
+            object.modifiers.remove(modifier)
+
+
+def move_modifiers_to_bottom(object: Object):
+    '''Move retopo modifiers to the bottom of the stack.'''
+    index = len(object.modifiers) - 1
+
+    for name in ModifierName:
+        modifier = _find_modifier(object, name)
+
+        if modifier is not None:
+            try:  # Newer versions of Blender can use modifier_move_to_index.
+                bpy.ops.object.modifier_move_to_index(modifier=modifier.name, index=index)
+
+            except:  # Older versions of Blender have to use modifier_move_down.
+                for _ in range(index - object.modifiers.find(modifier.name)):
+                    bpy.ops.object.modifier_move_down(modifier=modifier.name)
 
 
 def flip_normals(object: Object):
@@ -231,15 +294,3 @@ def flip_normals(object: Object):
         face.normal_flip()
 
     update_edit_mesh(object.data)
-
-
-def move_wireframe_to_bottom(object: Object):
-    '''Move our wireframe modifier to the bottom of the stack.'''
-    index = len(object.modifiers) - 1
-
-    try:  # Newer versions of Blender can use modifier_move_to_index.
-        bpy.ops.object.modifier_move_to_index(modifier=_WIREFRAME_NAME, index=index)
-
-    except:  # Older versions of Blender have to use modifier_move_down.
-        for _ in range(index - object.modifiers.find(_WIREFRAME_NAME)):
-            bpy.ops.object.modifier_move_down(modifier=_WIREFRAME_NAME)
