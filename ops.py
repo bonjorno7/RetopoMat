@@ -83,7 +83,7 @@ class MoveModifiersToBottomOperator(Operator):
     @classmethod
     def poll(cls, context: Context) -> bool:
         object: Object = context.active_object
-        return (object is not None) and (object.type == 'MESH')
+        return any(get_modifier(object, name) for name in ModifierName)
 
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
