@@ -108,7 +108,7 @@ def _setup_reference_material(material: Material):
     material.node_tree.nodes.clear()
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
-    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
+    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-300, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
@@ -129,9 +129,9 @@ def _setup_retopo_material(material: Material):
     material.node_tree.nodes.clear()
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
-    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
-    invert_node = _add_node(material, ShaderNodeInvert, (-600, 0))
-    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-800, 0))
+    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-300, 0))
+    invert_node = _add_node(material, ShaderNodeInvert, (-500, 0))
+    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-700, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
