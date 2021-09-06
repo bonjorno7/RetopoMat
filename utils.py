@@ -1,8 +1,8 @@
 from enum import Enum
 from typing import TYPE_CHECKING, List, Tuple, Union
 
+import bmesh
 import bpy
-from bmesh import from_edit_mesh, update_edit_mesh
 from bmesh.types import BMFace
 from bpy.types import (DisplaceModifier, Material, Mesh, Modifier, Object, ShaderNode, ShaderNodeBsdfPrincipled,
                        ShaderNodeEmission, ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial,
@@ -285,11 +285,29 @@ def move_modifiers_to_bottom(object: Object):
 
 
 def flip_normals(object: Object):
-    '''Flip all face normals on the given edit mode mesh object.'''
-    bm = from_edit_mesh(object.data)
+    '''Flip normals of selected faces on the given mesh object.'''
+    data: Mesh = object.data
 
-    for face in bm.faces:
-        face: BMFace
-        face.normal_flip()
+    if object.mode == 'EDIT':
+        bm = bmesh.from_edit_mesh(data)
 
-    update_edit_mesh(object.data)
+        faces: List[BMFace] = bm.faces
+        selected = [face for face in faces if face.select]
+        selected = selected if selected else faces
+
+        for face in selected:
+            face.normal_flip()
+
+        bmesh.update_edit_mesh(data)
+
+    else:
+        bm = bmesh.new(use_operators=False)
+        bm.from_mesh(data)
+
+        faces: List[BMFace] = bm.faces
+
+        for face in faces:
+            face.normal_flip()
+
+        bm.to_mesh(data)
+        data.update()

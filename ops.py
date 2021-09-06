@@ -96,13 +96,13 @@ class MoveModifiersToBottomOperator(Operator):
 class FlipNormalsOperator(Operator):
     bl_idname = 'retopomat.flip_normals'
     bl_label = 'Flip Normals'
-    bl_description = 'Flip normals of all the faces in your mesh'
+    bl_description = 'Flip normals of selected faces in your mesh'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
     @classmethod
     def poll(cls, context: Context) -> bool:
         object: Object = context.active_object
-        return (object is not None) and (object.type == 'MESH') and (object.mode == 'EDIT')
+        return (object is not None) and (object.type == 'MESH')
 
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
