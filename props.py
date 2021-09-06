@@ -41,6 +41,7 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.REFERENCE)
 
         if material is not None:
+            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Base Color'].default_value = value[:3] + (1.0,)
             node.inputs['Alpha'].default_value = value[3]
@@ -52,7 +53,7 @@ class RetopoMatSettings(PropertyGroup):
         description='Color and opacity of the reference material',
         subtype='COLOR',
         size=4,
-        default=(0.2, 0.2, 0.2, 0.8),
+        default=(0.2, 0.2, 0.2, 1.0),
         min=0.0,
         max=1.0,
         get=_get_reference_color,
@@ -66,26 +67,29 @@ class RetopoMatSettings(PropertyGroup):
         if material is not None:
             node = material.node_tree.nodes['Principled BSDF']
             color = node.inputs['Base Color'].default_value[:3]
-            return color + (1.0,)
+            alpha = node.inputs['Alpha'].default_value
+            return color + (alpha,)
 
-        return self.get_internal('retopo_color')[:3] + (1.0,)
+        return self.get_internal('retopo_color')
 
     def _set_retopo_color(self, value: tuple):
         object: Object = bpy.context.active_object
         material = get_material(object, MaterialName.RETOPO)
 
         if material is not None:
+            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Base Color'].default_value = value[:3] + (1.0,)
+            node.inputs['Alpha'].default_value = value[3]
 
-        self.set_internal('retopo_color', value[:3] + (1.0,))
+        self.set_internal('retopo_color', value)
 
     retopo_color: FloatVectorProperty(
         name='Retopo Color',
         description='Color of the retopo material',
         subtype='COLOR',
         size=4,
-        default=(0.3, 0.6, 0.9, 1.0),
+        default=(0.3, 0.6, 0.9, 0.2),
         min=0.0,
         max=1.0,
         get=_get_retopo_color,
@@ -97,21 +101,24 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
-            node = material.node_tree.nodes['Emission']
-            color = node.inputs['Color'].default_value[:3]
-            return color + (1.0,)
+            node = material.node_tree.nodes['Principled BSDF']
+            color = node.inputs['Emission'].default_value[:3]
+            alpha = node.inputs['Alpha'].default_value
+            return color + (alpha,)
 
-        return self.get_internal('wireframe_color')[:3] + (1.0,)
+        return self.get_internal('wireframe_color')
 
     def _set_wireframe_color(self, value: tuple):
         object: Object = bpy.context.active_object
         material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
-            node = material.node_tree.nodes['Emission']
-            node.inputs['Color'].default_value = value[:3] + (1.0,)
+            material.blend_method = 'BLEND'  # Always use alpha blend to hide wireframe behind translucent materials.
+            node = material.node_tree.nodes['Principled BSDF']
+            node.inputs['Emission'].default_value = value[:3] + (1.0,)
+            node.inputs['Alpha'].default_value = value[3]
 
-        self.set_internal('wireframe_color', value[:3] + (1.0,))
+        self.set_internal('wireframe_color', value)
 
     wireframe_color: FloatVectorProperty(
         name='Wireframe Color',

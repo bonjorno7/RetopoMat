@@ -5,8 +5,8 @@ import bmesh
 import bpy
 from bmesh.types import BMFace
 from bpy.types import (DisplaceModifier, Material, Mesh, Modifier, Object, ShaderNode, ShaderNodeBsdfPrincipled,
-                       ShaderNodeEmission, ShaderNodeInvert, ShaderNodeNewGeometry, ShaderNodeOutputMaterial,
-                       SolidifyModifier, WireframeModifier)
+                       ShaderNodeMixShader, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, SolidifyModifier,
+                       WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -90,7 +90,7 @@ def _check_wireframe_material(material: Material) -> bool:
     if not material.use_nodes:
         return False
 
-    if 'Emission' not in material.node_tree.nodes:
+    if 'Principled BSDF' not in material.node_tree.nodes:
         return False
 
     return True
@@ -98,69 +98,82 @@ def _check_wireframe_material(material: Material) -> bool:
 
 def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
-    material.blend_method = 'BLEND'
-    material.shadow_method = 'NONE'
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
 
+    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
+    material.shadow_method = 'NONE'
     material.use_backface_culling = False
     material.show_transparent_back = False
-
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-300, 0))
 
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
-    _set_defaults(principled_node, {'Base Color': color, 'Alpha': color[3], 'Roughness': 0.7, 'Metallic': 1.0})
+    _set_defaults(principled_node, {
+        'Base Color': color,
+        'Metallic': 1.0,
+        'Roughness': 0.7,
+        'Alpha': color[3],
+    })
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
 
 
 def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
-    material.blend_method = 'OPAQUE'
-    material.shadow_method = 'NONE'
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
 
+    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
+    material.shadow_method = 'NONE'
     material.use_backface_culling = False
     material.show_transparent_back = False
+    material.use_nodes = True
+    material.node_tree.nodes.clear()
 
+    output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
+    mix_shader_node = _add_node(material, ShaderNodeMixShader, (-200, 0))
+    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-200, -200))
+    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-500, 0))
+
+    _set_defaults(principled_node, {
+        'Base Color': color,
+        'Metallic': 0.0,
+        'Roughness': 0.3,
+        'Alpha': color[3],
+    })
+
+    # Using nodes to make back faces black so they're easier to spot.
+    material.node_tree.links.new(output_node.inputs['Surface'], mix_shader_node.outputs['Shader'])
+    material.node_tree.links.new(mix_shader_node.inputs['Fac'], geometry_node.outputs['Backfacing'])
+    material.node_tree.links.new(mix_shader_node.inputs['Shader'], principled_node.outputs['BSDF'])
+
+
+def _setup_wireframe_material(material: Material):
+    '''Setup the wireframe material.'''
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
+
+    material.blend_method = 'BLEND'  # Always use alpha blend to hide wireframe behind translucent materials.
+    material.shadow_method = 'NONE'
+    material.use_backface_culling = True
+    material.show_transparent_back = False
     material.use_nodes = True
     material.node_tree.nodes.clear()
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-300, 0))
-    invert_node = _add_node(material, ShaderNodeInvert, (-500, 0))
-    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-700, 0))
 
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
-    _set_defaults(principled_node, {'Base Color': color, 'Roughness': 0.3, 'Metallic': 0.0})
+    _set_defaults(principled_node, {
+        'Base Color': (0.0, 0.0, 0.0, 1.0),
+        'Specular': 0.0,
+        'Emission': color,
+        'Alpha': color[3],
+    })
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
-    material.node_tree.links.new(principled_node.inputs['Alpha'], invert_node.outputs['Color'])
-    material.node_tree.links.new(invert_node.inputs['Color'], geometry_node.outputs['Backfacing'])
-
-
-def _setup_wireframe_material(material: Material):
-    '''Setup the wireframe material.'''
-    material.blend_method = 'OPAQUE'
-    material.shadow_method = 'NONE'
-
-    material.use_backface_culling = False
-    material.show_transparent_back = False
-
-    material.use_nodes = True
-    material.node_tree.nodes.clear()
-
-    output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
-    emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
-
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
-    _set_defaults(emission_node, {'Color': color})
-
-    material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 
 
 def _add_node(material: Material, node_type: type, location: Tuple[float, float]) -> ShaderNode:
