@@ -79,7 +79,7 @@ def _check_retopo_material(material: Material) -> bool:
     if not material.use_nodes:
         return False
 
-    if 'Emission' not in material.node_tree.nodes:
+    if 'Principled BSDF' not in material.node_tree.nodes:
         return False
 
     return True
@@ -111,7 +111,7 @@ def _setup_reference_material(material: Material):
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    color = settings.get_internal('reference_color')
+    color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
     _set_defaults(principled_node, {'Base Color': color, 'Alpha': color[3], 'Roughness': 0.7, 'Metallic': 1.0})
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
@@ -129,15 +129,16 @@ def _setup_retopo_material(material: Material):
     material.node_tree.nodes.clear()
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
-    emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
-    invert_node = _add_node(material, ShaderNodeInvert, (-400, 0))
-    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-600, 0))
+    principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-400, 0))
+    invert_node = _add_node(material, ShaderNodeInvert, (-600, 0))
+    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-800, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.get_internal('retopo_color')})
+    color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
+    _set_defaults(principled_node, {'Base Color': color, 'Roughness': 0.3, 'Metallic': 0.0})
 
-    material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
-    material.node_tree.links.new(emission_node.inputs['Strength'], invert_node.outputs['Color'])
+    material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
+    material.node_tree.links.new(principled_node.inputs['Alpha'], invert_node.outputs['Color'])
     material.node_tree.links.new(invert_node.inputs['Color'], geometry_node.outputs['Backfacing'])
 
 
@@ -156,7 +157,8 @@ def _setup_wireframe_material(material: Material):
     emission_node = _add_node(material, ShaderNodeEmission, (-200, 0))
 
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    _set_defaults(emission_node, {'Color': settings.get_internal('wireframe_color')})
+    color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
+    _set_defaults(emission_node, {'Color': color})
 
     material.node_tree.links.new(output_node.inputs['Surface'], emission_node.outputs['Emission'])
 

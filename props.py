@@ -64,8 +64,8 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.RETOPO)
 
         if material is not None:
-            node = material.node_tree.nodes['Emission']
-            color = node.inputs['Color'].default_value[:3]
+            node = material.node_tree.nodes['Principled BSDF']
+            color = node.inputs['Base Color'].default_value[:3]
             return color + (1.0,)
 
         return self.get_internal('retopo_color')[:3] + (1.0,)
@@ -75,8 +75,8 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.RETOPO)
 
         if material is not None:
-            node = material.node_tree.nodes['Emission']
-            node.inputs['Color'].default_value = value[:3] + (1.0,)
+            node = material.node_tree.nodes['Principled BSDF']
+            node.inputs['Base Color'].default_value = value[:3] + (1.0,)
 
         self.set_internal('retopo_color', value[:3] + (1.0,))
 
