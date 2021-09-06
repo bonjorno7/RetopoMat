@@ -86,16 +86,9 @@ class SettingsPanel(RetopoMatPanel):
         layout.separator()
 
         try:
-            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex', text='Vertex Color')
-            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
-        except:
-            print_exc()
-
-        layout.separator()
-
-        try:
             layout.prop(context.space_data.shading, 'studiolight_rotate_z', text='World Rotation')
             layout.prop(context.space_data.shading, 'studiolight_intensity', text='World Strength')
+            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
         except:
             print_exc()
 
