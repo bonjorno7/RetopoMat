@@ -65,13 +65,13 @@ class SettingsPanel(RetopoMatPanel):
 
         layout.separator()
 
-        row = self.row_with_heading(layout, 'Displace')
+        row = self.row_with_heading(layout, 'Offset')
         row.prop(settings, 'displace_visibility', text='')
         sub = row.row()
         sub.enabled = settings.displace_visibility
         sub.prop(settings, 'displace_strength', text='')
 
-        row = self.row_with_heading(layout, 'Solidify')
+        row = self.row_with_heading(layout, 'Thickness')
         row.prop(settings, 'solidify_visibility', text='')
         sub = row.row()
         sub.enabled = settings.solidify_visibility
