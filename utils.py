@@ -111,8 +111,6 @@ def _check_wireframe_material(material: Material) -> bool:
     '''Check whether the wireframe material is valid.'''
     if not material.use_nodes:
         return False
-    elif 'Principled BSDF' not in material.node_tree.nodes:
-        return False
 
     return True
 
