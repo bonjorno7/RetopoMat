@@ -41,19 +41,13 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
             elif name in (MaterialName.RETOPO, MaterialName.WIREFRAME):
                 material = _find_material(settings.retopo_object, name)
 
-    # If there is a material, check and reset it if necessary.
-    if material is not None:
-        if name is MaterialName.REFERENCE:
-            if not _check_reference_material(material):
-                _setup_reference_material(material)
-
-        elif name is MaterialName.RETOPO:
-            if not _check_retopo_material(material):
-                _setup_retopo_material(material)
-
-        elif name is MaterialName.WIREFRAME:
-            if not _check_wireframe_material(material):
-                _setup_wireframe_material(material)
+    if (material is not None) and not check_material(material, name):
+        if create:
+            # We can safely setup the material, because create is only used from operators.
+            setup_material(material, name)
+        else:
+            # We can not safely setup the material, so don't give access to it.
+            material = None
 
     return material
 
@@ -70,6 +64,16 @@ def _find_material(object: Union[Object, None], name: MaterialName) -> Union[Mat
                 return material
 
     return None
+
+
+def check_material(material: Material, name: MaterialName) -> bool:
+    '''Check whether the given material is valid.'''
+    if name is MaterialName.REFERENCE:
+        return _check_reference_material(material)
+    elif name is MaterialName.RETOPO:
+        return _check_retopo_material(material)
+    elif name is MaterialName.WIREFRAME:
+        return _check_wireframe_material(material)
 
 
 def _check_reference_material(material: Material) -> bool:
@@ -103,6 +107,16 @@ def _check_wireframe_material(material: Material) -> bool:
         return False
 
     return True
+
+
+def setup_material(material: Material, name: MaterialName):
+    '''Setup the given material.'''
+    if name is MaterialName.REFERENCE:
+        _setup_reference_material(material)
+    elif name is MaterialName.RETOPO:
+        _setup_retopo_material(material)
+    elif name is MaterialName.WIREFRAME:
+        _setup_wireframe_material(material)
 
 
 def _setup_reference_material(material: Material):
