@@ -29,9 +29,9 @@ class AddReferenceMaterialOperator(Operator):
         return {'FINISHED'}
 
 
-class AddRetopoMaterialOperator(Operator):
-    bl_idname = 'retopomat.add_retopo_material'
-    bl_label = 'Add Retopo Material'
+class AddRetopoMaterialsOperator(Operator):
+    bl_idname = 'retopomat.add_retopo_materials'
+    bl_label = 'Add Retopo Materials'
     bl_description = 'Add retopo materials and modifiers to the active object'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
@@ -114,7 +114,7 @@ class FlipNormalsOperator(Operator):
 
 classes = (
     AddReferenceMaterialOperator,
-    AddRetopoMaterialOperator,
+    AddRetopoMaterialsOperator,
     RemoveMaterialsOperator,
     MoveModifiersToBottomOperator,
     FlipNormalsOperator,

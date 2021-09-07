@@ -1,7 +1,7 @@
 from bpy.types import Context, Object, Panel, Theme, UILayout
 from bpy.utils import register_class, unregister_class
 
-from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialOperator, FlipNormalsOperator,
+from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialsOperator, FlipNormalsOperator,
                   MoveModifiersToBottomOperator, RemoveMaterialsOperator)
 from .props import RetopoMatSettings
 from .utils import MaterialName, ModifierName, get_material, get_modifier
@@ -28,7 +28,7 @@ class MaterialsPanel(RetopoMatPanel):
         layout = self.configure_layout()
 
         layout.operator(AddReferenceMaterialOperator.bl_idname)
-        layout.operator(AddRetopoMaterialOperator.bl_idname)
+        layout.operator(AddRetopoMaterialsOperator.bl_idname)
         layout.operator(RemoveMaterialsOperator.bl_idname)
 
 
