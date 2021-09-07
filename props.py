@@ -25,7 +25,8 @@ class RetopoMatSettings(PropertyGroup):
         self[key] = value
 
     reference_object_name: StringProperty(
-        name='Reference Object Name',
+        name='Reference Object',
+        description='Set automatically when you select an object with a reference material',
         options={'HIDDEN'},
     )
 
@@ -38,7 +39,8 @@ class RetopoMatSettings(PropertyGroup):
         self.reference_object_name = object.name
 
     retopo_object_name: StringProperty(
-        name='Retopo Object Name',
+        name='Retopo Object',
+        description='Set automatically when you select an object with a retopo material or modifier',
         options={'HIDDEN'},
     )
 

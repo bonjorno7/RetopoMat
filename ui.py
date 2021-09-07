@@ -1,5 +1,6 @@
 from traceback import print_exc
 
+import bpy
 from bpy.types import Context, Panel, UILayout
 from bpy.utils import register_class, unregister_class
 
@@ -41,6 +42,24 @@ class SettingsPanel(RetopoMatPanel):
     def draw(self, context: Context):
         layout = self.configure_layout().column()
         settings: RetopoMatSettings = context.scene.retopo_mat
+
+        layout.prop_search(
+            settings,
+            'reference_object_name',
+            search_data=bpy.data,
+            search_property='objects',
+            text='Reference',
+        )
+
+        layout.prop_search(
+            settings,
+            'retopo_object_name',
+            search_data=bpy.data,
+            search_property='objects',
+            text='Retopo',
+        )
+
+        layout.separator()
 
         row = layout.row(align=True)
         row.prop(settings, 'reference_color', text='Reference')
