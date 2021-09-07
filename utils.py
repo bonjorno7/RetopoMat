@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING, List, Tuple, Union
 import bmesh
 import bpy
 from bmesh.types import BMFace
-from bpy.types import (DisplaceModifier, Material, Mesh, Modifier, Object, ShaderNode, ShaderNodeBsdfPrincipled,
-                       ShaderNodeMixShader, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, SolidifyModifier,
-                       WireframeModifier)
+from bpy.types import (Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object, Scene, ShaderNode,
+                       ShaderNodeBsdfPrincipled, ShaderNodeMixShader, ShaderNodeNewGeometry, ShaderNodeOutputMaterial,
+                       SolidifyModifier, WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -327,3 +327,30 @@ def flip_normals(object: Object):
 
         bm.to_mesh(data)
         data.update()
+
+
+@bpy.app.handlers.persistent
+def update_handler(scene: Scene, depsgraph: Depsgraph):
+    object: Object = depsgraph.view_layer.objects.active
+
+    # Update the stored reference or retopo object with the active mesh object.
+    if (object is not None) and (object.type == 'MESH'):
+        settings: 'RetopoMatSettings' = scene.retopo_mat
+
+        # If an object has the reference material, it is a reference object.
+        if _find_material(object, MaterialName.REFERENCE):
+            settings.reference_object = object
+
+        # If an object has any of the retopo materials or modifiers, it is a retopo object.
+        elif any(_find_material(object, name) for name in (MaterialName.RETOPO, MaterialName.WIREFRAME)):
+            settings.retopo_object = object
+        elif any(_find_modifier(object, name) for name in ModifierName):
+            settings.retopo_object = object
+
+
+def register():
+    bpy.app.handlers.depsgraph_update_post.append(update_handler)
+
+
+def unregister():
+    bpy.app.handlers.depsgraph_update_post.remove(update_handler)

@@ -21,12 +21,13 @@ bl_info = {
     'location': 'View3D',
 }
 
-from . import ops, props, ui
+from . import ops, props, ui, utils
 
 modules = (
     props,
     ops,
     ui,
+    utils,
 )
 
 

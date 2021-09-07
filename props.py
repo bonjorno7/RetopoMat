@@ -1,7 +1,7 @@
-from typing import Any
+from typing import Any, Union
 
 import bpy
-from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty
+from bpy.props import BoolProperty, FloatProperty, FloatVectorProperty, PointerProperty, StringProperty
 from bpy.types import Object, PropertyGroup, Scene
 from bpy.utils import register_class, unregister_class
 
@@ -23,6 +23,32 @@ class RetopoMatSettings(PropertyGroup):
 
     def set_internal(self, key: str, value: Any):
         self[key] = value
+
+    reference_object_name: StringProperty(
+        name='Reference Object Name',
+        options={'HIDDEN'},
+    )
+
+    @property
+    def reference_object(self) -> Union[Object, None]:
+        return bpy.data.objects.get(self.reference_object_name)
+
+    @reference_object.setter
+    def reference_object(self, object: Object):
+        self.reference_object_name = object.name
+
+    retopo_object_name: StringProperty(
+        name='Retopo Object Name',
+        options={'HIDDEN'},
+    )
+
+    @property
+    def retopo_object(self) -> Union[Object, None]:
+        return bpy.data.objects.get(self.retopo_object_name)
+
+    @retopo_object.setter
+    def retopo_object(self, object: Object):
+        self.retopo_object_name = object.name
 
     def _get_reference_blend(self) -> bool:
         object: Object = bpy.context.active_object
