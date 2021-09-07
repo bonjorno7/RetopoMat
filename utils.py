@@ -31,20 +31,29 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
     if material is None:
         if create:
             material = bpy.data.materials.new(name.value)
+
         else:
-            return None
+            # If the material isn't found or created, see if it's on the last reference or retopo object.
+            settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
 
-    if name is MaterialName.REFERENCE:
-        if not _check_reference_material(material):
-            _setup_reference_material(material)
+            if name is MaterialName.REFERENCE:
+                material = _find_material(settings.reference_object, name)
+            elif name in (MaterialName.RETOPO, MaterialName.WIREFRAME):
+                material = _find_material(settings.retopo_object, name)
 
-    elif name is MaterialName.RETOPO:
-        if not _check_retopo_material(material):
-            _setup_retopo_material(material)
+    # If there is a material, check and reset it if necessary.
+    if material is not None:
+        if name is MaterialName.REFERENCE:
+            if not _check_reference_material(material):
+                _setup_reference_material(material)
 
-    elif name is MaterialName.WIREFRAME:
-        if not _check_wireframe_material(material):
-            _setup_wireframe_material(material)
+        elif name is MaterialName.RETOPO:
+            if not _check_retopo_material(material):
+                _setup_retopo_material(material)
+
+        elif name is MaterialName.WIREFRAME:
+            if not _check_wireframe_material(material):
+                _setup_wireframe_material(material)
 
     return material
 
@@ -208,15 +217,22 @@ def get_modifier(object: Union[Object, None], name: ModifierName, create: bool =
     '''Get a modifier with the given name from the given mesh object, create it if necessary.'''
     modifier = _find_modifier(object, name)
 
-    if modifier is None and create:
-        modifier = object.modifiers.new(name.value, name.name)
+    if modifier is None:
+        if create:
+            modifier = object.modifiers.new(name.value, name.name)
 
-        if name == ModifierName.DISPLACE:
-            _setup_displace_modifier(modifier)
-        elif name == ModifierName.SOLIDIFY:
-            _setup_solidify_modifier(modifier)
-        elif name == ModifierName.WIREFRAME:
-            _setup_wireframe_modifier(modifier)
+            # Only setup modifiers on creation, so the user can adjust settings manually.
+            if name == ModifierName.DISPLACE:
+                _setup_displace_modifier(modifier)
+            elif name == ModifierName.SOLIDIFY:
+                _setup_solidify_modifier(modifier)
+            elif name == ModifierName.WIREFRAME:
+                _setup_wireframe_modifier(modifier)
+
+        else:
+            # If the modifier isn't found or created, see if it's on the last retopo object.
+            settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+            modifier = _find_modifier(settings.retopo_object, name)
 
     return modifier
 
