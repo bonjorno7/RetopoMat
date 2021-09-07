@@ -32,8 +32,7 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
         if create:
             material = bpy.data.materials.new(name.value)
 
-        else:
-            # If the material isn't found or created, see if it's on the last reference or retopo object.
+        else:  # If the material isn't found or created, see if it's on the last reference or retopo object.
             settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
 
             if name is MaterialName.REFERENCE:
@@ -41,12 +40,11 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
             elif name in (MaterialName.RETOPO, MaterialName.WIREFRAME):
                 material = _find_material(settings.retopo_object, name)
 
-    if (material is not None) and not check_material(material, name):
-        if create:
-            # We can safely setup the material, because create is only used from operators.
+    if material is not None:
+        if create:  # If create is used, always setup the material, even if it's already valid.
             setup_material(material, name)
-        else:
-            # We can not safely setup the material, so don't give access to it.
+
+        elif not check_material(material, name):  # The material is not valid and we can't safely fix it here.
             material = None
 
     return material
@@ -236,12 +234,13 @@ def get_modifier(object: Union[Object, None], name: ModifierName, create: bool =
     if modifier is None:
         if create:
             modifier = object.modifiers.new(name.value, name.name)
-            setup_modifier(modifier, name)
 
-        else:
-            # If the modifier isn't found or created, see if it's on the last retopo object.
+        else:  # If the modifier isn't found or created, see if it's on the last retopo object.
             settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
             modifier = _find_modifier(settings.retopo_object, name)
+
+    if (modifier is not None) and create:  # If create is used, always setup the modifier, even if it already existed.
+        setup_modifier(modifier, name)
 
     return modifier
 
