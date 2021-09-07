@@ -221,7 +221,7 @@ def get_modifier(object: Union[Object, None], name: ModifierName, create: bool =
     return modifier
 
 
-def _find_modifier(object: Union[Object, None], name: MaterialName) -> Union[Modifier, None]:
+def _find_modifier(object: Union[Object, None], name: ModifierName) -> Union[Modifier, None]:
     '''Try to find the modifier with the given name on the given mesh object.'''
     if (object is not None) and (object.type == 'MESH'):
         if name.value in object.modifiers:
