@@ -113,7 +113,7 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
-            material.blend_method = 'BLEND'  # Always use alpha blend to hide wireframe behind translucent materials.
+            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Emission'].default_value = value[:3] + (1.0,)
             node.inputs['Alpha'].default_value = value[3]
@@ -125,7 +125,7 @@ class RetopoMatSettings(PropertyGroup):
         description='Color of the wireframe material',
         subtype='COLOR',
         size=4,
-        default=(0.0, 0.0, 0.0, 1.0),
+        default=(0.0, 0.0, 0.0, 0.99),
         min=0.0,
         max=1.0,
         get=_get_wireframe_color,

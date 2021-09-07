@@ -156,7 +156,7 @@ def _setup_wireframe_material(material: Material):
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
     color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
 
-    material.blend_method = 'BLEND'  # Always use alpha blend to hide wireframe behind translucent materials.
+    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
     material.shadow_method = 'NONE'
     material.use_backface_culling = True
     material.show_transparent_back = False
