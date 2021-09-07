@@ -24,6 +24,32 @@ class RetopoMatSettings(PropertyGroup):
     def set_internal(self, key: str, value: Any):
         self[key] = value
 
+    def _get_reference_blend(self) -> bool:
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.REFERENCE)
+
+        if material is not None:
+            return material.blend_method != 'OPAQUE'
+
+        return self.get_internal('reference_blend')
+
+    def _set_reference_blend(self, value: bool):
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.REFERENCE)
+
+        if material is not None:
+            material.blend_method = 'BLEND' if value else 'OPAQUE'
+
+        self.set_internal('reference_blend', value)
+
+    reference_blend: BoolProperty(
+        name='Reference Blend',
+        description='Whether to use alpha blend for the reference material',
+        default=False,
+        get=_get_reference_blend,
+        set=_set_reference_blend,
+    )
+
     def _get_reference_color(self) -> tuple:
         object: Object = bpy.context.active_object
         material = get_material(object, MaterialName.REFERENCE)
@@ -41,7 +67,6 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.REFERENCE)
 
         if material is not None:
-            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Base Color'].default_value = value[:3] + (1.0,)
             node.inputs['Alpha'].default_value = value[3]
@@ -53,11 +78,37 @@ class RetopoMatSettings(PropertyGroup):
         description='Color and opacity of the reference material',
         subtype='COLOR',
         size=4,
-        default=(0.2, 0.2, 0.2, 1.0),
+        default=(0.2, 0.2, 0.2, 0.8),
         min=0.0,
         max=1.0,
         get=_get_reference_color,
         set=_set_reference_color,
+    )
+
+    def _get_retopo_blend(self) -> bool:
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.RETOPO)
+
+        if material is not None:
+            return material.blend_method != 'OPAQUE'
+
+        return self.get_internal('retopo_blend')
+
+    def _set_retopo_blend(self, value: bool):
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.RETOPO)
+
+        if material is not None:
+            material.blend_method = 'BLEND' if value else 'OPAQUE'
+
+        self.set_internal('retopo_blend', value)
+
+    retopo_blend: BoolProperty(
+        name='Retopo Blend',
+        description='Whether to use alpha blend for the retopo material',
+        default=True,
+        get=_get_retopo_blend,
+        set=_set_retopo_blend,
     )
 
     def _get_retopo_color(self) -> tuple:
@@ -77,7 +128,6 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.RETOPO)
 
         if material is not None:
-            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Base Color'].default_value = value[:3] + (1.0,)
             node.inputs['Alpha'].default_value = value[3]
@@ -94,6 +144,32 @@ class RetopoMatSettings(PropertyGroup):
         max=1.0,
         get=_get_retopo_color,
         set=_set_retopo_color,
+    )
+
+    def _get_wireframe_blend(self) -> bool:
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.WIREFRAME)
+
+        if material is not None:
+            return material.blend_method != 'OPAQUE'
+
+        return self.get_internal('wireframe_blend')
+
+    def _set_wireframe_blend(self, value: bool):
+        object: Object = bpy.context.active_object
+        material = get_material(object, MaterialName.WIREFRAME)
+
+        if material is not None:
+            material.blend_method = 'BLEND' if value else 'OPAQUE'
+
+        self.set_internal('wireframe_blend', value)
+
+    wireframe_blend: BoolProperty(
+        name='Wireframe Blend',
+        description='Whether to use alpha blend for the wireframe material',
+        default=True,
+        get=_get_wireframe_blend,
+        set=_set_wireframe_blend,
     )
 
     def _get_wireframe_color(self) -> tuple:
@@ -113,7 +189,6 @@ class RetopoMatSettings(PropertyGroup):
         material = get_material(object, MaterialName.WIREFRAME)
 
         if material is not None:
-            material.blend_method = 'BLEND' if value[3] < 1.0 else 'OPAQUE'
             node = material.node_tree.nodes['Principled BSDF']
             node.inputs['Emission'].default_value = value[:3] + (1.0,)
             node.inputs['Alpha'].default_value = value[3]
@@ -125,7 +200,7 @@ class RetopoMatSettings(PropertyGroup):
         description='Color of the wireframe material',
         subtype='COLOR',
         size=4,
-        default=(0.0, 0.0, 0.0, 0.99),
+        default=(0.0, 0.0, 0.0, 1.0),
         min=0.0,
         max=1.0,
         get=_get_wireframe_color,

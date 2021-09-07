@@ -59,9 +59,20 @@ class SettingsPanel(RetopoMatPanel):
         layout = self.configure_layout().column()
         settings: RetopoMatSettings = context.scene.retopo_mat
 
-        layout.prop(settings, 'reference_color', text='Reference')
-        layout.prop(settings, 'retopo_color', text='Retopo')
-        layout.prop(settings, 'wireframe_color', text='Wireframe')
+        row = layout.row(align=True)
+        row.prop(settings, 'reference_color', text='Reference')
+        icon = 'IMAGE_RGB_ALPHA' if settings.reference_blend else 'IMAGE_RGB'
+        row.prop(settings, 'reference_blend', text='', icon=icon)
+
+        row = layout.row(align=True)
+        row.prop(settings, 'retopo_color', text='Retopo')
+        icon = 'IMAGE_RGB_ALPHA' if settings.retopo_blend else 'IMAGE_RGB'
+        row.prop(settings, 'retopo_blend', text='', icon=icon)
+
+        row = layout.row(align=True)
+        row.prop(settings, 'wireframe_color', text='Wireframe')
+        icon = 'IMAGE_RGB_ALPHA' if settings.wireframe_blend else 'IMAGE_RGB'
+        row.prop(settings, 'wireframe_blend', text='', icon=icon)
 
         layout.separator()
 

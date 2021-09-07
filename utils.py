@@ -99,9 +99,10 @@ def _check_wireframe_material(material: Material) -> bool:
 def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    blend: bool = settings.get_internal('reference_blend')
     color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
 
-    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
+    material.blend_method = 'BLEND' if blend else 'OPAQUE'
     material.shadow_method = 'NONE'
     material.use_backface_culling = False
     material.show_transparent_back = False
@@ -124,9 +125,10 @@ def _setup_reference_material(material: Material):
 def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    blend: bool = settings.get_internal('retopo_blend')
     color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
 
-    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
+    material.blend_method = 'BLEND' if blend else 'OPAQUE'
     material.shadow_method = 'NONE'
     material.use_backface_culling = False
     material.show_transparent_back = False
@@ -154,9 +156,10 @@ def _setup_retopo_material(material: Material):
 def _setup_wireframe_material(material: Material):
     '''Setup the wireframe material.'''
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    blend: bool = settings.get_internal('wireframe_blend')
     color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
 
-    material.blend_method = 'BLEND' if color[3] < 1.0 else 'OPAQUE'
+    material.blend_method = 'BLEND' if blend else 'OPAQUE'
     material.shadow_method = 'NONE'
     material.use_backface_culling = True
     material.show_transparent_back = False
