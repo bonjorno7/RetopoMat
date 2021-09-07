@@ -239,14 +239,7 @@ def get_modifier(object: Union[Object, None], name: ModifierName, create: bool =
     if modifier is None:
         if create:
             modifier = object.modifiers.new(name.value, name.name)
-
-            # Only setup modifiers on creation, so the user can adjust settings manually.
-            if name == ModifierName.DISPLACE:
-                _setup_displace_modifier(modifier)
-            elif name == ModifierName.SOLIDIFY:
-                _setup_solidify_modifier(modifier)
-            elif name == ModifierName.WIREFRAME:
-                _setup_wireframe_modifier(modifier)
+            setup_modifier(modifier, name)
 
         else:
             # If the modifier isn't found or created, see if it's on the last retopo object.
@@ -263,6 +256,16 @@ def _find_modifier(object: Union[Object, None], name: ModifierName) -> Union[Mod
             return object.modifiers[name.value]
 
     return None
+
+
+def setup_modifier(modifier: Modifier, name: ModifierName):
+    '''Setup the given modifier.'''
+    if name == ModifierName.DISPLACE:
+        _setup_displace_modifier(modifier)
+    elif name == ModifierName.SOLIDIFY:
+        _setup_solidify_modifier(modifier)
+    elif name == ModifierName.WIREFRAME:
+        _setup_wireframe_modifier(modifier)
 
 
 def _setup_displace_modifier(modifier: DisplaceModifier):
