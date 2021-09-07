@@ -1,7 +1,5 @@
-from traceback import print_exc
-
 import bpy
-from bpy.types import Context, Panel, UILayout
+from bpy.types import Context, Panel, ThemeView3D, UILayout, View3DShading
 from bpy.utils import register_class, unregister_class
 
 from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialOperator, FlipNormalsOperator,
@@ -93,14 +91,49 @@ class SettingsPanel(RetopoMatPanel):
         icon = 'RESTRICT_VIEW_OFF' if settings.wireframe_visibility else 'RESTRICT_VIEW_ON'
         row.prop(settings, 'wireframe_visibility', text='', icon=icon)
 
-        layout.separator()
+        if self.should_draw_world(context):
+            layout.separator()
+            self.draw_world(context, layout)
 
-        try:
-            layout.prop(context.space_data.shading, 'studiolight_rotate_z', text='World Rotation')
-            layout.prop(context.space_data.shading, 'studiolight_intensity', text='World Strength')
-            layout.prop(context.preferences.themes['Default'].view_3d, 'vertex_size', text='Vertex Size')
-        except:
-            print_exc()
+        if self.should_draw_edit(context):
+            layout.separator()
+            self.draw_edit(context, layout)
+
+    def should_draw_world(self, context: Context) -> bool:
+        shading: View3DShading = context.space_data.shading
+
+        if shading.type == 'SOLID' and shading.light == 'STUDIO':
+            return True
+        elif shading.type == 'MATERIAL' and not shading.use_scene_world:
+            return True
+        elif shading.type == 'RENDERED' and not shading.use_scene_world_render:
+            return True
+
+        return False
+
+    def draw_world(self, context: Context, layout: UILayout):
+        shading: View3DShading = context.space_data.shading
+
+        row = layout.row(align=True)
+        row.prop(shading, 'studiolight_rotate_z', text='World Rotation')
+        prop = 'use_world_space_lighting' if shading.type == 'SOLID' else 'use_studiolight_view_rotation'
+        row.prop(shading, prop, text='', icon='WORLD')
+
+        row = layout.row(align=True)
+        row.prop(shading, 'studiolight_intensity', text='World Strength')
+        row.prop(shading, 'studio_light', text='', icon_only=True)
+
+    def should_draw_edit(self, context: Context):
+        if context.mode != 'EDIT_MESH':
+            return False
+        elif 'Default' not in context.preferences.themes:
+            return False
+
+        return True
+
+    def draw_edit(self, context: Context, layout: UILayout) -> bool:
+        view_3d: ThemeView3D = context.preferences.themes['Default'].view_3d
+        layout.prop(view_3d, 'vertex_size', text='Vertex Size')
 
 
 class UtilitiesPanel(RetopoMatPanel):
