@@ -175,7 +175,7 @@ def _setup_wireframe_material(material: Material):
 
     material.blend_method = 'BLEND' if blend else 'OPAQUE'
     material.shadow_method = 'NONE'
-    material.use_backface_culling = True
+    material.use_backface_culling = False
     material.show_transparent_back = False
     material.use_nodes = True
     material.node_tree.nodes.clear()
