@@ -5,8 +5,8 @@ import bmesh
 import bpy
 from bmesh.types import BMFace
 from bpy.types import (Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object, Scene, ShaderNode,
-                       ShaderNodeBsdfPrincipled, ShaderNodeMixShader, ShaderNodeNewGeometry, ShaderNodeOutputMaterial,
-                       SolidifyModifier, WireframeModifier)
+                       ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeMixShader, ShaderNodeNewGeometry,
+                       ShaderNodeOutputMaterial, SolidifyModifier, WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -146,8 +146,9 @@ def _setup_retopo_material(material: Material):
 
     output_node = _add_node(material, ShaderNodeOutputMaterial, (0, 0))
     mix_shader_node = _add_node(material, ShaderNodeMixShader, (-200, 0))
-    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-200, -200))
+    geometry_node = _add_node(material, ShaderNodeNewGeometry, (-200, 300))
     principled_node = _add_node(material, ShaderNodeBsdfPrincipled, (-500, 0))
+    emission_node = _add_node(material, ShaderNodeEmission, (-200, -200))
 
     _set_defaults(principled_node, {
         'Base Color': color,
@@ -156,17 +157,21 @@ def _setup_retopo_material(material: Material):
         'Alpha': color[3],
     })
 
-    # Using nodes to make back faces black so they're easier to spot.
+    _set_defaults(emission_node, {
+        'Color': (0.0, 0.0, 0.0, 1.0),
+    })
+
+    # Using nodes to make back faces easier to spot. Using indices for mix shader inputs because of name overlap.
     material.node_tree.links.new(output_node.inputs['Surface'], mix_shader_node.outputs['Shader'])
-    material.node_tree.links.new(mix_shader_node.inputs['Fac'], geometry_node.outputs['Backfacing'])
-    material.node_tree.links.new(mix_shader_node.inputs['Shader'], principled_node.outputs['BSDF'])
+    material.node_tree.links.new(mix_shader_node.inputs[0], geometry_node.outputs['Backfacing'])
+    material.node_tree.links.new(mix_shader_node.inputs[1], principled_node.outputs['BSDF'])
+    material.node_tree.links.new(mix_shader_node.inputs[2], emission_node.outputs['Emission'])
 
 
 def _setup_wireframe_material(material: Material):
     '''Setup the wireframe material.'''
     settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
-    blend: bool = settings.get_internal('wireframe_blend')
-    color: Tuple[float, float, float, float] = settings.get_internal('wireframe_color')
+    blend: bool = settings.get_internal('retopo_blend')
 
     material.blend_method = 'BLEND' if blend else 'OPAQUE'
     material.shadow_method = 'NONE'
@@ -181,8 +186,8 @@ def _setup_wireframe_material(material: Material):
     _set_defaults(principled_node, {
         'Base Color': (0.0, 0.0, 0.0, 1.0),
         'Specular': 0.0,
-        'Emission': color,
-        'Alpha': color[3],
+        'Emission': (0.0, 0.0, 0.0, 1.0),
+        'Alpha': 1.0,
     })
 
     material.node_tree.links.new(output_node.inputs['Surface'], principled_node.outputs['BSDF'])
