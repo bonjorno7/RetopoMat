@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, List, Tuple, Union
 import bmesh
 import bpy
 from bmesh.types import BMFace
-from bpy.types import (Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object, Scene, ShaderNode,
+from bpy.types import (Context, Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object, Scene, ShaderNode,
                        ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeMixShader, ShaderNodeNewGeometry,
                        ShaderNodeOutputMaterial, SolidifyModifier, WireframeModifier)
 
@@ -22,6 +22,16 @@ class ModifierName(Enum):
     DISPLACE = 'RetopoMat Displace'
     SOLIDIFY = 'RetopoMat Solidify'
     WIREFRAME = 'RetopoMat Wireframe'
+
+
+def check_context(context: Context) -> bool:
+    '''Check whether the current context has write access to ID properties.'''
+    try:
+        context.scene.name = context.scene.name
+    except:
+        return False
+    else:
+        return True
 
 
 def get_material(object: Union[Object, None], name: MaterialName, create: bool = False) -> Union[Material, None]:
@@ -44,8 +54,11 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
         if create:  # If create is used, always setup the material, even if it's already valid.
             setup_material(material, name)
 
-        elif not check_material(material, name):  # The material is not valid and we can't safely fix it here.
-            material = None
+        elif not check_material(material, name):
+            if check_context(bpy.context):  # The material is not valid, but we can fix it here.
+                setup_material(material, name)
+            else:  # The material is not valid and we can't safely fix it here.
+                material = None
 
     return material
 
