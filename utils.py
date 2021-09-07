@@ -80,8 +80,7 @@ def _check_reference_material(material: Material) -> bool:
     '''Check whether the reference material is valid.'''
     if not material.use_nodes:
         return False
-
-    if 'Principled BSDF' not in material.node_tree.nodes:
+    elif 'Principled BSDF' not in material.node_tree.nodes:
         return False
 
     return True
@@ -91,8 +90,7 @@ def _check_retopo_material(material: Material) -> bool:
     '''Check whether the retopo material is valid.'''
     if not material.use_nodes:
         return False
-
-    if 'Principled BSDF' not in material.node_tree.nodes:
+    elif 'Principled BSDF' not in material.node_tree.nodes:
         return False
 
     return True
@@ -102,8 +100,7 @@ def _check_wireframe_material(material: Material) -> bool:
     '''Check whether the wireframe material is valid.'''
     if not material.use_nodes:
         return False
-
-    if 'Principled BSDF' not in material.node_tree.nodes:
+    elif 'Principled BSDF' not in material.node_tree.nodes:
         return False
 
     return True
