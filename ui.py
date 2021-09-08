@@ -2,7 +2,7 @@ from bpy.types import Context, Object, Panel, Theme, UILayout
 from bpy.utils import register_class, unregister_class
 
 from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialsOperator, FlipNormalsOperator,
-                  MoveModifiersToBottomOperator, RemoveMaterialsOperator)
+                  RemoveMaterialsOperator, SortModifiersOperator)
 from .props import RetopoMatSettings
 from .utils import MaterialName, ModifierName, get_material, get_modifier
 
@@ -98,7 +98,7 @@ class UtilitiesPanel(RetopoMatPanel):
     def draw(self, context: Context):
         layout = self.configure_layout()
 
-        layout.operator(MoveModifiersToBottomOperator.bl_idname)
+        layout.operator(SortModifiersOperator.bl_idname)
         layout.operator(FlipNormalsOperator.bl_idname)
 
 

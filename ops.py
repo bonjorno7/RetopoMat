@@ -74,9 +74,9 @@ class RemoveMaterialsOperator(Operator):
         return {'FINISHED'}
 
 
-class MoveModifiersToBottomOperator(Operator):
-    bl_idname = 'retopomat.move_modifiers_to_bottom'
-    bl_label = 'Move Modifiers to Bottom'
+class SortModifiersOperator(Operator):
+    bl_idname = 'retopomat.sort_modifiers'
+    bl_label = 'Sort Modifiers'
     bl_description = 'Move retopo modifiers to the bottom of the stack'
     bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
 
@@ -89,7 +89,7 @@ class MoveModifiersToBottomOperator(Operator):
         object: Object = context.active_object
         move_modifiers_to_bottom(object)
 
-        self.report({'INFO'}, 'Moved retopo modifiers to bottom')
+        self.report({'INFO'}, 'Sorted modifiers')
         return {'FINISHED'}
 
 
@@ -116,7 +116,7 @@ classes = (
     AddReferenceMaterialOperator,
     AddRetopoMaterialsOperator,
     RemoveMaterialsOperator,
-    MoveModifiersToBottomOperator,
+    SortModifiersOperator,
     FlipNormalsOperator,
 )
 
