@@ -4,9 +4,10 @@ from typing import TYPE_CHECKING, List, Tuple, Union
 import bmesh
 import bpy
 from bmesh.types import BMFace
-from bpy.types import (Context, Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object, Scene, ShaderNode,
-                       ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeMixShader, ShaderNodeNewGeometry,
-                       ShaderNodeOutputMaterial, SolidifyModifier, WireframeModifier)
+from bpy.types import (Context, CorrectiveSmoothModifier, Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object,
+                       Scene, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeMixShader,
+                       ShaderNodeNewGeometry, ShaderNodeOutputMaterial, ShrinkwrapModifier, SolidifyModifier,
+                       WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -355,6 +356,84 @@ def _move_modifier(object: Object, modifier: Modifier, index: int):
         elif current > index:
             for _ in range(current - index):
                 bpy.ops.object.modifier_move_up(modifier=modifier.name)
+
+
+def quick_shrinkwrap(
+    object: Object,
+    target: Union[Object, None],
+    offset_one: float,
+    offset_two: float,
+    factor: float,
+    iterations: int,
+    scale: float,
+):
+    '''Add and apply shrinkwrap and corrective smooth modifiers with the given settings.'''
+    # Use selected vertices if we are in edit mode.
+    group_name = ''
+    if object.mode == 'EDIT':
+        bpy.ops.object.vertex_group_assign_new()
+        group = object.vertex_groups[-1]
+        group.name = 'RetopoMat Corrective Shrinkwrap'
+        group_name = group.name
+
+    # Switch to object mode if we are not already.
+    object_mode = object.mode
+    if object_mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode='OBJECT')
+
+    # Disable the original modifiers.
+    original_modifiers: List[Modifier] = list(object.modifiers)
+    for modifier in original_modifiers.copy():
+        if modifier.show_viewport:
+            modifier.show_viewport = False
+        else:
+            original_modifiers.remove(modifier)
+
+    # Setup the first shrinkwrap modifier.
+    shrinkwrap_one: ShrinkwrapModifier = object.modifiers.new('RetopoMat Shrinkwrap One', 'SHRINKWRAP')
+    shrinkwrap_one.wrap_method = 'TARGET_PROJECT'
+    shrinkwrap_one.wrap_mode = 'ABOVE_SURFACE'
+    shrinkwrap_one.target = target
+    shrinkwrap_one.offset = offset_one
+    shrinkwrap_one.vertex_group = group_name
+
+    # Setup the corrective smooth modifier.
+    smooth_modifier: CorrectiveSmoothModifier = object.modifiers.new('RetopoMat Corrective Smooth', 'CORRECTIVE_SMOOTH')
+    smooth_modifier.factor = factor
+    smooth_modifier.iterations = iterations
+    smooth_modifier.scale = scale
+    smooth_modifier.vertex_group = group_name
+
+    # Setup the second shrinkwrap modifier.
+    shrinkwrap_two: ShrinkwrapModifier = object.modifiers.new('RetopoMat Shrinkwrap Two', 'SHRINKWRAP')
+    shrinkwrap_two.wrap_method = 'NEAREST_SURFACEPOINT'
+    shrinkwrap_two.wrap_mode = 'ABOVE_SURFACE'
+    shrinkwrap_two.target = target
+    shrinkwrap_two.offset = offset_two
+    shrinkwrap_two.vertex_group = group_name
+
+    # Move our modifiers to the top of the stack.
+    _move_modifier(object, shrinkwrap_one, 0)
+    _move_modifier(object, smooth_modifier, 1)
+    _move_modifier(object, shrinkwrap_two, 2)
+
+    # Apply our modifiers in order.
+    bpy.ops.object.modifier_apply(modifier=shrinkwrap_one.name)
+    bpy.ops.object.modifier_apply(modifier=smooth_modifier.name)
+    bpy.ops.object.modifier_apply(modifier=shrinkwrap_two.name)
+
+    # Enable the modifiers that we disabled.
+    for modifier in original_modifiers:
+        modifier.show_viewport = True
+
+    # Remove the vertex group if we made one.
+    if group_name in object.vertex_groups:
+        group = object.vertex_groups[group_name]
+        object.vertex_groups.remove(group)
+
+    # Switch back to the mode we had before.
+    if object_mode != 'OBJECT':
+        bpy.ops.object.mode_set(mode=object_mode)
 
 
 def flip_normals(object: Object):
