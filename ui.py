@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING
+
 from bpy.types import Context, Object, Panel, Theme, UILayout
 from bpy.utils import register_class, unregister_class
 
 from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialsOperator, FlipNormalsOperator,
                   RemoveMaterialsOperator, SortModifiersOperator)
-from .props import RetopoMatSettings
 from .utils import MaterialName, ModifierName, get_material, get_modifier
+
+if TYPE_CHECKING:
+    from .props import RetopoMatSettings
 
 
 class RetopoMatPanel(Panel):
@@ -41,7 +45,7 @@ class SettingsPanel(RetopoMatPanel):
         layout = self.configure_layout().column()
 
         object: Object = context.active_object
-        settings: RetopoMatSettings = context.scene.retopomat
+        settings: 'RetopoMatSettings' = context.scene.retopomat
 
         reference_material = get_material(object, MaterialName.REFERENCE)
         retopo_material = get_material(object, MaterialName.RETOPO)
