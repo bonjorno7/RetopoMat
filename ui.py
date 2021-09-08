@@ -41,7 +41,7 @@ class SettingsPanel(RetopoMatPanel):
         layout = self.configure_layout().column()
 
         object: Object = context.active_object
-        settings: RetopoMatSettings = context.scene.retopo_mat
+        settings: RetopoMatSettings = context.scene.retopomat
 
         reference_material = get_material(object, MaterialName.REFERENCE)
         retopo_material = get_material(object, MaterialName.RETOPO)

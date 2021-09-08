@@ -43,7 +43,7 @@ def get_material(object: Union[Object, None], name: MaterialName, create: bool =
             material = bpy.data.materials.new(name.value)
 
         else:  # If the material isn't found or created, see if it's on the last reference or retopo object.
-            settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+            settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
 
             if name is MaterialName.REFERENCE:
                 material = _find_material(settings.reference_object, name)
@@ -127,7 +127,7 @@ def setup_material(material: Material, name: MaterialName):
 
 def _setup_reference_material(material: Material):
     '''Setup the reference material.'''
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     blend: bool = settings.get_internal('reference_blend')
     color: Tuple[float, float, float, float] = settings.get_internal('reference_color')
 
@@ -153,7 +153,7 @@ def _setup_reference_material(material: Material):
 
 def _setup_retopo_material(material: Material):
     '''Setup the retopo material.'''
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     blend: bool = settings.get_internal('retopo_blend')
     color: Tuple[float, float, float, float] = settings.get_internal('retopo_color')
 
@@ -190,7 +190,7 @@ def _setup_retopo_material(material: Material):
 
 def _setup_wireframe_material(material: Material):
     '''Setup the wireframe material.'''
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     blend: bool = settings.get_internal('retopo_blend')
 
     material.blend_method = 'BLEND' if blend else 'OPAQUE'
@@ -247,7 +247,7 @@ def get_modifier(object: Union[Object, None], name: ModifierName, create: bool =
             modifier = object.modifiers.new(name.value, name.name)
 
         else:  # If the modifier isn't found or created, see if it's on the last retopo object.
-            settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+            settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
             modifier = _find_modifier(settings.retopo_object, name)
 
     if (modifier is not None) and create:  # If create is used, always setup the modifier, even if it already existed.
@@ -282,7 +282,7 @@ def _setup_displace_modifier(modifier: DisplaceModifier):
     modifier.direction = 'NORMAL'
     modifier.mid_level = 0.0
 
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     modifier.show_viewport = settings.get_internal('displace_visibility')
     modifier.strength = settings.get_internal('displace_strength')
 
@@ -298,7 +298,7 @@ def _setup_solidify_modifier(modifier: SolidifyModifier):
     modifier.material_offset = 1
     modifier.material_offset_rim = 1
 
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     modifier.show_viewport = settings.get_internal('solidify_visibility')
     modifier.thickness = settings.get_internal('solidify_thickness')
 
@@ -315,7 +315,7 @@ def _setup_wireframe_modifier(modifier: WireframeModifier):
     modifier.use_crease = False
     modifier.material_offset = 1
 
-    settings: 'RetopoMatSettings' = bpy.context.scene.retopo_mat
+    settings: 'RetopoMatSettings' = bpy.context.scene.retopomat
     modifier.show_viewport = settings.get_internal('wireframe_visibility')
     modifier.thickness = settings.get_internal('wireframe_thickness')
 
@@ -380,7 +380,7 @@ def update_handler(scene: Scene, depsgraph: Depsgraph):
 
     # Update the stored reference or retopo object with the active mesh object.
     if (object is not None) and (object.type == 'MESH'):
-        settings: 'RetopoMatSettings' = scene.retopo_mat
+        settings: 'RetopoMatSettings' = scene.retopomat
 
         # If an object has the reference material, it is a reference object.
         if _find_material(object, MaterialName.REFERENCE):

@@ -356,11 +356,11 @@ def register():
     for cls in classes:
         register_class(cls)
 
-    Scene.retopo_mat = PointerProperty(type=RetopoMatSettings)
+    Scene.retopomat = PointerProperty(type=RetopoMatSettings)
 
 
 def unregister():
-    del Scene.retopo_mat
+    del Scene.retopomat
 
     for cls in reversed(classes):
         unregister_class(cls)
