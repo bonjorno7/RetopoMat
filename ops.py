@@ -1,8 +1,8 @@
 from bpy.types import Context, Object, Operator
 from bpy.utils import register_class, unregister_class
 
-from .utils import (MaterialName, ModifierName, flip_normals, get_material, get_modifier, move_modifiers_to_bottom,
-                    remove_modifiers, set_materials)
+from .utils import (MaterialName, ModifierName, flip_normals, get_material, get_modifier, remove_modifiers,
+                    set_materials, sort_modifiers)
 
 
 class AddReferenceMaterialOperator(Operator):
@@ -87,7 +87,7 @@ class SortModifiersOperator(Operator):
 
     def execute(self, context: Context) -> set:
         object: Object = context.active_object
-        move_modifiers_to_bottom(object)
+        sort_modifiers(object)
 
         self.report({'INFO'}, 'Sorted modifiers')
         return {'FINISHED'}

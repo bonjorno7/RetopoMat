@@ -329,7 +329,7 @@ def remove_modifiers(object: Object):
             object.modifiers.remove(modifier)
 
 
-def move_modifiers_to_bottom(object: Object):
+def sort_modifiers(object: Object):
     '''Move retopo modifiers to the bottom of the stack.'''
     index = len(object.modifiers) - 1
 
@@ -337,12 +337,24 @@ def move_modifiers_to_bottom(object: Object):
         modifier = _find_modifier(object, name)
 
         if modifier is not None:
-            try:  # Newer versions of Blender can use modifier_move_to_index.
-                bpy.ops.object.modifier_move_to_index(modifier=modifier.name, index=index)
+            _move_modifier(object, modifier, index)
 
-            except:  # Older versions of Blender have to use modifier_move_down.
-                for _ in range(index - object.modifiers.find(modifier.name)):
-                    bpy.ops.object.modifier_move_down(modifier=modifier.name)
+
+def _move_modifier(object: Object, modifier: Modifier, index: int):
+    '''Move the given modifier to the given index.'''
+    try:  # Newer versions of Blender can use modifier_move_to_index.
+        bpy.ops.object.modifier_move_to_index(modifier=modifier.name, index=index)
+
+    except:  # Older versions of Blender have to use modifier_move_down/up.
+        current = object.modifiers.find(modifier.name)
+
+        if index > current:
+            for _ in range(index - current):
+                bpy.ops.object.modifier_move_down(modifier=modifier.name)
+
+        elif current > index:
+            for _ in range(current - index):
+                bpy.ops.object.modifier_move_up(modifier=modifier.name)
 
 
 def flip_normals(object: Object):
