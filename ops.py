@@ -109,6 +109,7 @@ class QuickShrinkwrapOperator(Operator):
     target: StringProperty(
         name='Target',
         description='Target for both shrinkwrap modifiers',
+        options={'SKIP_SAVE'},
     )
 
     offset_one: FloatProperty(
@@ -119,6 +120,7 @@ class QuickShrinkwrapOperator(Operator):
         soft_max=100.0,
         step=0.01,
         unit='LENGTH',
+        options={'SKIP_SAVE'},
     )
 
     offset_two: FloatProperty(
@@ -129,6 +131,7 @@ class QuickShrinkwrapOperator(Operator):
         soft_max=100.0,
         step=0.01,
         unit='LENGTH',
+        options={'SKIP_SAVE'},
     )
 
     factor: FloatProperty(
@@ -139,6 +142,7 @@ class QuickShrinkwrapOperator(Operator):
         soft_max=1.0,
         step=0.01,
         subtype='FACTOR',
+        options={'SKIP_SAVE'},
     )
 
     iterations: IntProperty(
@@ -147,6 +151,7 @@ class QuickShrinkwrapOperator(Operator):
         default=5,
         soft_min=0,
         soft_max=200,
+        options={'SKIP_SAVE'},
     )
 
     scale: FloatProperty(
@@ -157,6 +162,7 @@ class QuickShrinkwrapOperator(Operator):
         soft_max=2.0,
         step=0.01,
         subtype='FACTOR',
+        options={'SKIP_SAVE'},
     )
 
     def draw(self, context: Context):
