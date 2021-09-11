@@ -25,6 +25,17 @@ class ModifierName(Enum):
     WIREFRAME = 'RetopoMat Wireframe'
 
 
+class ShrinkwrapName:
+    SHRINKWRAP_TANGENT = 'RetopoMat Shrinkwrap Tangent'
+    CORRECTIVE_SMOOTH = 'RetopoMat Corrective Smooth'
+    SHRINKWRAP_NEAREST = 'RetopoMat Shrinkwrap Nearest'
+    VERTEX_GROUP = 'RetopoMat Quick Shrinkwrap'
+
+    @classmethod
+    def modifiers(cls) -> List[str]:
+        return (cls.SHRINKWRAP_TANGENT, cls.CORRECTIVE_SMOOTH, cls.SHRINKWRAP_NEAREST)
+
+
 def check_context(context: Context) -> bool:
     '''Check whether the current context has write access to ID properties.'''
     try:
@@ -322,7 +333,7 @@ def _setup_wireframe_modifier(modifier: WireframeModifier):
 
 
 def remove_modifiers(object: Object):
-    '''Remove retopo modifiers with from the given object.'''
+    '''Remove retopo modifiers from the given object.'''
     for name in ModifierName:
         modifier = _find_modifier(object, name)
 
@@ -358,82 +369,103 @@ def _move_modifier(object: Object, modifier: Modifier, index: int):
                 bpy.ops.object.modifier_move_up(modifier=modifier.name)
 
 
-def quick_shrinkwrap(
-    object: Object,
-    target: Union[Object, None],
-    offset_one: float,
-    offset_two: float,
-    factor: float,
-    iterations: int,
-    scale: float,
-):
-    '''Add and apply shrinkwrap and corrective smooth modifiers with the given settings.'''
+def setup_shrinkwrap(object: Object):
+    '''Setup shrinkwrap and corrective smooth modifiers.'''
+    # Remove the vertex group if it's left over from last time.
+    if ShrinkwrapName.VERTEX_GROUP in object.vertex_groups:
+        vertex_group = object.vertex_groups[ShrinkwrapName.VERTEX_GROUP]
+        object.vertex_groups.remove(vertex_group)
+
     # Use selected vertices if we are in edit mode.
-    group_name = ''
     if object.mode == 'EDIT':
         bpy.ops.object.vertex_group_assign_new()
-        group = object.vertex_groups[-1]
-        group.name = 'RetopoMat Corrective Shrinkwrap'
-        group_name = group.name
+        vertex_group = object.vertex_groups[-1]
+        vertex_group.name = ShrinkwrapName.VERTEX_GROUP
 
+    # Setup the first shrinkwrap modifier.
+    shrinkwrap_tangent_name = ShrinkwrapName.SHRINKWRAP_TANGENT
+    shrinkwrap_tangent: ShrinkwrapModifier = object.modifiers.new(shrinkwrap_tangent_name, 'SHRINKWRAP')
+    shrinkwrap_tangent.show_viewport = shrinkwrap_tangent.show_in_editmode = shrinkwrap_tangent.show_on_cage = True
+    shrinkwrap_tangent.wrap_method = 'TARGET_PROJECT'
+    shrinkwrap_tangent.wrap_mode = 'ABOVE_SURFACE'
+    shrinkwrap_tangent.vertex_group = ShrinkwrapName.VERTEX_GROUP
+
+    # Setup the corrective smooth modifier.
+    corrective_smooth_name = ShrinkwrapName.CORRECTIVE_SMOOTH
+    corrective_smooth: CorrectiveSmoothModifier = object.modifiers.new(corrective_smooth_name, 'CORRECTIVE_SMOOTH')
+    corrective_smooth.show_viewport = corrective_smooth.show_in_editmode = corrective_smooth.show_on_cage = True
+    corrective_smooth.vertex_group = ShrinkwrapName.VERTEX_GROUP
+
+    # Setup the second shrinkwrap modifier.
+    shrinkwrap_neartest_name = ShrinkwrapName.SHRINKWRAP_NEAREST
+    shrinkwrap_neartest: ShrinkwrapModifier = object.modifiers.new(shrinkwrap_neartest_name, 'SHRINKWRAP')
+    shrinkwrap_neartest.show_viewport = shrinkwrap_neartest.show_in_editmode = shrinkwrap_neartest.show_on_cage = True
+    shrinkwrap_neartest.wrap_method = 'NEAREST_SURFACEPOINT'
+    shrinkwrap_neartest.wrap_mode = 'ABOVE_SURFACE'
+    shrinkwrap_neartest.vertex_group = ShrinkwrapName.VERTEX_GROUP
+
+    # Move our modifiers to the top of the stack.
+    _move_modifier(object, shrinkwrap_tangent, 0)
+    _move_modifier(object, corrective_smooth, 1)
+    _move_modifier(object, shrinkwrap_neartest, 2)
+
+
+def apply_shrinkwrap(object: Object):
+    '''Apply shrinkwrap and corrective smooth modifiers.'''
     # Switch to object mode if we are not already.
     object_mode = object.mode
     if object_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
 
     # Disable the original modifiers.
-    original_modifiers: List[Modifier] = list(object.modifiers)
-    for modifier in original_modifiers.copy():
+    original_modifiers: List[Modifier] = []
+    for modifier in object.modifiers[3:]:
+        modifier: Modifier
+
         if modifier.show_viewport:
             modifier.show_viewport = False
-        else:
-            original_modifiers.remove(modifier)
+            original_modifiers.append(modifier)
 
-    # Setup the first shrinkwrap modifier.
-    shrinkwrap_one: ShrinkwrapModifier = object.modifiers.new('RetopoMat Shrinkwrap One', 'SHRINKWRAP')
-    shrinkwrap_one.wrap_method = 'TARGET_PROJECT'
-    shrinkwrap_one.wrap_mode = 'ABOVE_SURFACE'
-    shrinkwrap_one.target = target
-    shrinkwrap_one.offset = offset_one
-    shrinkwrap_one.vertex_group = group_name
+    # Get an up to date dependency graph.
+    bpy.context.view_layer.update()
+    depsgraph = bpy.context.view_layer.depsgraph
 
-    # Setup the corrective smooth modifier.
-    smooth_modifier: CorrectiveSmoothModifier = object.modifiers.new('RetopoMat Corrective Smooth', 'CORRECTIVE_SMOOTH')
-    smooth_modifier.factor = factor
-    smooth_modifier.iterations = iterations
-    smooth_modifier.scale = scale
-    smooth_modifier.vertex_group = group_name
+    # Apply our modifiers with bmesh.
+    bm = bmesh.new()
+    bm.from_object(object, depsgraph)
+    bm.to_mesh(object.data)
+    bm.free()
 
-    # Setup the second shrinkwrap modifier.
-    shrinkwrap_two: ShrinkwrapModifier = object.modifiers.new('RetopoMat Shrinkwrap Two', 'SHRINKWRAP')
-    shrinkwrap_two.wrap_method = 'NEAREST_SURFACEPOINT'
-    shrinkwrap_two.wrap_mode = 'ABOVE_SURFACE'
-    shrinkwrap_two.target = target
-    shrinkwrap_two.offset = offset_two
-    shrinkwrap_two.vertex_group = group_name
-
-    # Move our modifiers to the top of the stack.
-    _move_modifier(object, shrinkwrap_one, 0)
-    _move_modifier(object, smooth_modifier, 1)
-    _move_modifier(object, shrinkwrap_two, 2)
-
-    # Apply our modifiers in order.
-    bpy.ops.object.modifier_apply(modifier=shrinkwrap_one.name)
-    bpy.ops.object.modifier_apply(modifier=smooth_modifier.name)
-    bpy.ops.object.modifier_apply(modifier=shrinkwrap_two.name)
-
-    # Enable the modifiers that we disabled.
-    for modifier in original_modifiers:
-        modifier.show_viewport = True
+    # Remove our modifiers.
+    for modifier_name in ShrinkwrapName.modifiers():
+        if modifier_name in object.modifiers:
+            modifier = object.modifiers[modifier_name]
+            object.modifiers.remove(modifier)
 
     # Remove the vertex group if we made one.
-    if group_name in object.vertex_groups:
-        group = object.vertex_groups[group_name]
-        object.vertex_groups.remove(group)
+    if ShrinkwrapName.VERTEX_GROUP in object.vertex_groups:
+        vertex_group = object.vertex_groups[ShrinkwrapName.VERTEX_GROUP]
+        object.vertex_groups.remove(vertex_group)
+
+    # Enable the modifiers we disabled.
+    for modifier in original_modifiers:
+        modifier.show_viewport = True
 
     # Switch back to the mode we had before.
     if object_mode != 'OBJECT':
         bpy.ops.object.mode_set(mode=object_mode)
+
+
+def clean_shrinkwrap(object: Object):
+    '''Remove shrinkwrap and corrective smooth modifiers.'''
+    for modifier_name in ShrinkwrapName.modifiers():
+        if modifier_name in object.modifiers:
+            modifier = object.modifiers[modifier_name]
+            object.modifiers.remove(modifier)
+
+    if ShrinkwrapName.VERTEX_GROUP in object.vertex_groups:
+        vertex_group = object.vertex_groups[ShrinkwrapName.VERTEX_GROUP]
+        object.vertex_groups.remove(vertex_group)
 
 
 def flip_normals(object: Object):
