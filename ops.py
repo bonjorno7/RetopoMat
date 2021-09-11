@@ -250,14 +250,6 @@ class QuickShrinkwrapOperator(Operator):
 
     def invoke(self, context: 'Context', event: Event) -> set:
         object: Object = context.active_object
-
-        # Instead of this check, it'd be ideal if I could just remove the modifiers on cancel.
-        # But since there's no way to know when and if a props dialog is closed, I don't know how.
-        for modifier_name in ShrinkwrapName.modifiers():
-            if modifier_name in object.modifiers:
-                self.report({'WARNING'}, 'First remove existing Quick Shrinkwrap modifiers')
-                return {'CANCELLED'}
-
         setup_shrinkwrap(object)
 
         # Use the reference object as default shrinkwrap target.
