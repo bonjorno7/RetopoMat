@@ -1,12 +1,13 @@
 from typing import TYPE_CHECKING
 
 import bpy
-from bpy.props import FloatProperty, IntProperty, StringProperty
+from bpy.props import BoolProperty, BoolVectorProperty, FloatProperty, IntProperty, StringProperty
 from bpy.types import Context, CorrectiveSmoothModifier, Event, Object, Operator, ShrinkwrapModifier
 from bpy.utils import register_class, unregister_class
 
 from .utils import (MaterialName, ModifierName, ShrinkwrapName, apply_shrinkwrap, clean_shrinkwrap, flip_normals,
-                    get_material, get_modifier, remove_modifiers, set_materials, setup_shrinkwrap, sort_modifiers)
+                    get_material, get_mirror_modifier, get_modifier, remove_modifiers, row_with_heading, set_materials,
+                    setup_shrinkwrap, sort_modifiers)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -97,6 +98,122 @@ class SortModifiersOperator(Operator):
         sort_modifiers(object)
 
         self.report({'INFO'}, 'Sorted modifiers')
+        return {'FINISHED'}
+
+
+class MirrorModifierOperator(Operator):
+    bl_idname = 'retopomat.mirror_modifier'
+    bl_label = 'Mirror Modifier'
+    bl_description = 'Add a mirror modifier to the top of the stack'
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+
+    use_axis: BoolVectorProperty(
+        name='Mirror Axis',
+        description='Enable axis mirror',
+        default=(True, False, False),
+        size=3,
+    )
+
+    use_bisect_axis: BoolVectorProperty(
+        name='Bisect Axis',
+        description='Cuts the mesh across the mirror plane',
+        default=(True, False, False),
+        size=3,
+    )
+
+    use_bisect_flip_axis: BoolVectorProperty(
+        name='Bisect Flip Axis',
+        description='Flips the direction of the slice',
+        default=(False, False, False),
+        size=3,
+    )
+
+    def _update_mirror_object(self, context: Context):
+        object: Object = context.active_object
+        mirror_object: Object = bpy.data.objects.get(self.mirror_object)
+
+        # Don't accept invalid names and don't use self as mirror.
+        if (mirror_object is None) or (mirror_object is object):
+            self['mirror_object'] = ''
+
+    mirror_object: StringProperty(
+        name='Mirror Object',
+        description='Object to use as mirror',
+        update=_update_mirror_object,
+        options={'SKIP_SAVE'},
+    )
+
+    use_clip: BoolProperty(
+        name='Clipping',
+        description='Prevent vertices from going through the mirror during transform',
+        default=True,
+    )
+
+    use_mirror_merge: BoolProperty(
+        name='Merge',
+        description='Merge vertices within the merge threshold',
+        default=True,
+    )
+
+    def draw(self, context: Context):
+        layout = self.layout.column()
+        layout.use_property_split = True
+        layout.use_property_decorate = False
+
+        row = row_with_heading(layout, heading='Axis', align=True)
+        for index, axis in enumerate('XYZ'):
+            row.prop(self, 'use_axis', index=index, text=axis, toggle=1)
+
+        row = row_with_heading(layout, heading='Bisect', align=True)
+        for index, axis in enumerate('XYZ'):
+            row.prop(self, 'use_bisect_axis', index=index, text=axis, toggle=1)
+
+        row = row_with_heading(layout, heading='Flip', align=True)
+        for index, axis in enumerate('XYZ'):
+            row.prop(self, 'use_bisect_flip_axis', index=index, text=axis, toggle=1)
+
+        layout.separator()
+
+        layout.prop_search(self, 'mirror_object', bpy.data, 'objects')
+        layout.prop(self, 'use_clip')
+        layout.prop(self, 'use_mirror_merge')
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        object: Object = context.active_object
+        return (object is not None) and (object.type == 'MESH')
+
+    def invoke(self, context: Context, event: Event) -> set:
+        object: Object = context.active_object
+        modifier = get_mirror_modifier(object)
+
+        if modifier is not None:
+            # Copy settings from the existing modifier.
+            self.mirror_object = modifier.mirror_object.name if (modifier.mirror_object is not None) else ''
+            for key in ('use_axis', 'use_bisect_axis', 'use_bisect_flip_axis', 'use_clip', 'use_mirror_merge'):
+                setattr(self, key, getattr(modifier, key))
+
+        else:
+            # Use the reference object as default mirror object.
+            settings: 'RetopoMatSettings' = context.scene.retopomat
+            mirror_object = settings.reference_object
+            if (mirror_object is not None) and (mirror_object is not object):
+                self.mirror_object = mirror_object.name
+
+            # Report here because in execute it would spam.
+            self.report({'INFO'}, 'Added mirror modifier')
+
+        return self.execute(context)
+
+    def execute(self, context: Context) -> set:
+        object: Object = context.active_object
+        modifier = get_mirror_modifier(object, create=True)
+
+        # Copy our settings to the modifier.
+        modifier.mirror_object = bpy.data.objects.get(self.mirror_object)
+        for key in ('use_axis', 'use_bisect_axis', 'use_bisect_flip_axis', 'use_clip', 'use_mirror_merge'):
+            setattr(modifier, key, getattr(self, key))
+
         return {'FINISHED'}
 
 
@@ -297,6 +414,7 @@ classes = (
     AddRetopoMaterialsOperator,
     RemoveMaterialsOperator,
     SortModifiersOperator,
+    MirrorModifierOperator,
     QuickShrinkwrapOperator,
     FlipNormalsOperator,
 )

@@ -4,10 +4,10 @@ from typing import TYPE_CHECKING, List, Tuple, Union
 import bmesh
 import bpy
 from bmesh.types import BMFace
-from bpy.types import (Context, CorrectiveSmoothModifier, Depsgraph, DisplaceModifier, Material, Mesh, Modifier, Object,
-                       Scene, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission, ShaderNodeMixShader,
-                       ShaderNodeNewGeometry, ShaderNodeOutputMaterial, ShrinkwrapModifier, SolidifyModifier,
-                       WireframeModifier)
+from bpy.types import (Context, CorrectiveSmoothModifier, Depsgraph, DisplaceModifier, Material, Mesh, MirrorModifier,
+                       Modifier, Object, Scene, ShaderNode, ShaderNodeBsdfPrincipled, ShaderNodeEmission,
+                       ShaderNodeMixShader, ShaderNodeNewGeometry, ShaderNodeOutputMaterial, ShrinkwrapModifier,
+                       SolidifyModifier, UILayout, WireframeModifier)
 
 if TYPE_CHECKING:
     from .props import RetopoMatSettings
@@ -369,6 +369,20 @@ def _move_modifier(object: Object, modifier: Modifier, index: int):
                 bpy.ops.object.modifier_move_up(modifier=modifier.name)
 
 
+def get_mirror_modifier(object: Object, create: bool = False) -> Union[MirrorModifier, None]:
+    '''Get the first mirror modifier, create one if necessary.'''
+    for modifier in object.modifiers.values():
+        if modifier.type == 'MIRROR':
+            return modifier
+
+    if create:
+        modifier = object.modifiers.new('Mirror', 'MIRROR')
+        _move_modifier(object, modifier, 0)
+        return modifier
+
+    return None
+
+
 def setup_shrinkwrap(object: Object):
     '''Setup shrinkwrap and corrective smooth modifiers.'''
     # Remove the vertex group if it's left over from last time.
@@ -495,6 +509,27 @@ def flip_normals(object: Object):
 
         bm.to_mesh(data)
         data.update()
+
+
+def row_with_heading(layout: UILayout, heading: str, align: bool = False) -> UILayout:
+    '''Make a row with heading, also works in older versions of Blender.'''
+    # Newer versions of Blender can use heading.
+    try:
+        return layout.row(heading=heading, align=align)
+
+    # Older versions of Blender have to use split.
+    except:
+        split = layout.row().split()
+        split.use_property_split = False
+        split.use_property_decorate = True
+
+        left = split.row()
+        left.alignment = 'RIGHT'
+        left.label(text=heading)
+
+        right = split.row(align=align)
+        right.alignment = 'EXPAND'
+        return right
 
 
 @bpy.app.handlers.persistent
