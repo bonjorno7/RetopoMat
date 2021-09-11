@@ -276,7 +276,7 @@ class QuickShrinkwrapOperator(Operator):
         self.report({'INFO'}, 'Applied modifiers')
         return {'FINISHED'}
 
-    def __del__(self):
+    def cancel(self, context: Context):
         object: Object = bpy.context.active_object
         clean_shrinkwrap(object)
 
