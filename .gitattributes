@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto eol=lf
+
+# Store blend files on Git LFS
+*.blend filter=lfs diff=lfs merge=lfs -text
