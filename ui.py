@@ -4,7 +4,7 @@ from bpy.types import Context, Object, Panel, Theme, UILayout
 from bpy.utils import register_class, unregister_class
 
 from .ops import (AddReferenceMaterialOperator, AddRetopoMaterialsOperator, FlipNormalsOperator, MirrorModifierOperator,
-                  QuickShrinkwrapOperator, RemoveMaterialsOperator, SortModifiersOperator)
+                  PolyStripOperator, QuickShrinkwrapOperator, RemoveMaterialsOperator, SortModifiersOperator)
 from .utils import MaterialName, ModifierName, get_material, get_modifier
 
 if TYPE_CHECKING:
@@ -106,6 +106,7 @@ class UtilitiesPanel(RetopoMatPanel):
         layout.operator(MirrorModifierOperator.bl_idname)
         layout.operator(QuickShrinkwrapOperator.bl_idname)
         layout.operator(FlipNormalsOperator.bl_idname)
+        layout.operator(PolyStripOperator.bl_idname)
 
 
 classes = (

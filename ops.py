@@ -1,9 +1,16 @@
+from pathlib import Path
 from typing import TYPE_CHECKING
 
+import bgl
+import bmesh
 import bpy
+import gpu
+import gpu_extras
 from bpy.props import BoolProperty, BoolVectorProperty, FloatProperty, IntProperty, StringProperty
-from bpy.types import Context, CorrectiveSmoothModifier, Event, Object, Operator, ShrinkwrapModifier
+from bpy.types import (Context, CorrectiveSmoothModifier, Event, NodesModifier, Object, Operator, ShrinkwrapModifier,
+                       SpaceView3D)
 from bpy.utils import register_class, unregister_class
+from bpy_extras import view3d_utils
 
 from .utils import (MaterialName, ModifierName, ShrinkwrapName, apply_shrinkwrap, clean_shrinkwrap, flip_normals,
                     get_material, get_mirror_modifier, get_modifier, remove_modifiers, row_with_heading, set_materials,
@@ -409,6 +416,174 @@ class FlipNormalsOperator(Operator):
         return {'FINISHED'}
 
 
+class PolyStripOperator(Operator):
+    bl_idname = 'retopomat.poly_strip'
+    bl_label = 'Poly Strip'
+    bl_description = 'Draw a strip of polygons'
+    bl_options = {'REGISTER', 'INTERNAL', 'UNDO'}
+
+    cross: IntProperty(
+        name='Cross',
+        description='Polygons in the U direction',
+        default=8,
+        min=1,
+        soft_max=100,
+    )
+
+    follow: IntProperty(
+        name='Follow',
+        description='Polygons in the V direction',
+        default=1,
+        min=1,
+        soft_max=100,
+    )
+
+    width: FloatProperty(
+        name='Width',
+        description='Width of the faces',
+        default=0.1,
+        min=0.0,
+        soft_max=100.0,
+        step=1,
+    )
+
+    @classmethod
+    def poll(cls, context: Context) -> bool:
+        object: Object = context.active_object
+        return (object is not None) and (object.type == 'MESH') and (object.mode == 'EDIT')
+
+    def invoke(self, context: Context, event: Event) -> set:
+        self.object = None
+        self.points = []
+
+        self.draw_handler = SpaceView3D.draw_handler_add(self.draw_callback, (context,), 'WINDOW', 'POST_VIEW')
+        self.lines = []
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context: Context, event: Event) -> set:
+        context.window.cursor_modal_set('PAINT_BRUSH')
+
+        if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
+            coords = event.mouse_region_x, event.mouse_region_y
+            ray_origin = view3d_utils.region_2d_to_origin_3d(context.region, context.region_data, coords)
+            view_vector = view3d_utils.region_2d_to_vector_3d(context.region, context.region_data, coords)
+
+            context.active_object.hide_set(True)
+            depsgraph = context.evaluated_depsgraph_get()
+            results = context.scene.ray_cast(depsgraph, ray_origin, view_vector)
+            context.active_object.hide_set(False)
+
+            result, location, normal, index, object, matrix = results
+            if not result:
+                return {'RUNNING_MODAL'}
+
+            self.object: Object = object
+            return {'RUNNING_MODAL'}
+
+        if event.type in ('RIGHTMOUSE', 'ESC'):
+            context.window.cursor_modal_restore()
+            return {'CANCELLED'}
+
+        if self.object:
+            if event.type == 'MOUSEMOVE':
+                coords = event.mouse_region_x, event.mouse_region_y
+                ray_origin = view3d_utils.region_2d_to_origin_3d(context.region, context.region_data, coords)
+                view_vector = view3d_utils.region_2d_to_vector_3d(context.region, context.region_data, coords)
+                ray_target = ray_origin + view_vector
+
+                matrix_inv = self.object.matrix_world.inverted_safe()
+                ray_origin_obj = matrix_inv @ ray_origin
+                ray_target_obj = matrix_inv @ ray_target
+                ray_direction_obj = ray_target_obj - ray_origin_obj
+
+                depsgraph = context.evaluated_depsgraph_get()
+                results = self.object.ray_cast(ray_origin_obj, ray_direction_obj, depsgraph=depsgraph)
+
+                result, location, normal, index = results
+                if not result:
+                    return {'RUNNING_MODAL'}
+
+                self.points.append(location)
+                if len(self.points) > 1:
+                    self.lines.extend(self.points[-2:])
+
+                context.area.tag_redraw()
+                return {'RUNNING_MODAL'}
+
+            if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
+                self.draw_handler = SpaceView3D.draw_handler_remove(self.draw_handler, 'WINDOW')
+                context.window.cursor_modal_restore()
+
+                self.report({'INFO'}, 'Added poly strip')
+                return self.execute(context)
+
+        return {'PASS_THROUGH'}
+
+    def execute(self, context: Context) -> set:
+        curve_data = bpy.data.curves.new('Poly Strip', 'CURVE')
+        curve_object = bpy.data.objects.new('Poly Strip', curve_data)
+        context.scene.collection.objects.link(curve_object)
+
+        spline = curve_data.splines.new('POLY')
+        spline.points.add(len(self.points) - 1)
+        for index in range(len(self.points)):
+            spline.points[index].co[:3] = self.points[index][:3]
+
+        if 'Poly Strip' not in bpy.data.node_groups:
+            path = Path(__file__).parent.joinpath('poly_strip.blend').as_posix()
+            with bpy.data.libraries.load(path) as (data_from, data_to):
+                data_to.node_groups.append('Poly Strip')
+
+        node_group = bpy.data.node_groups['Poly Strip']
+        modifier: NodesModifier = curve_object.modifiers.new('Poly Strip', 'NODES')
+        modifier.node_group = node_group
+
+        values = [self.object, self.cross, self.follow, self.width]
+        for key in modifier.keys():
+            if key.startswith('Input_') and key.endswith(tuple('0123456789')):
+                modifier[key] = values.pop(0)
+
+        depsgraph = context.evaluated_depsgraph_get()
+        curve_evaluated = bpy.data.meshes.new_from_object(
+            object=curve_object.evaluated_get(depsgraph),
+            preserve_all_data_layers=True,
+            depsgraph=depsgraph,
+        )
+
+        bm = bmesh.from_edit_mesh(context.active_object.data)
+        bm.from_mesh(curve_evaluated)
+        bmesh.update_edit_mesh(context.active_object.data)
+
+        bpy.data.meshes.remove(curve_evaluated)
+        bpy.data.objects.remove(curve_object)
+        bpy.data.curves.remove(curve_data)
+
+        if not node_group.users:
+            bpy.data.node_groups.remove(node_group)
+
+        return {'FINISHED'}
+
+    def draw_callback(self, context: Context):
+        scale = context.preferences.view.ui_scale
+
+        bgl.glEnable(bgl.GL_BLEND)
+        bgl.glEnable(bgl.GL_LINE_SMOOTH)
+        bgl.glLineWidth(2 * scale)
+
+        shader = gpu.shader.from_builtin('3D_UNIFORM_COLOR')
+        shader.bind()
+        shader.uniform_float('color', (1.0, 1.0, 1.0, 1.0))
+
+        batch = gpu_extras.batch.batch_for_shader(shader, 'LINES', {'pos': self.lines})
+        batch.draw(shader)
+
+        bgl.glLineWidth(1)
+        bgl.glDisable(bgl.GL_LINE_SMOOTH)
+        bgl.glDisable(bgl.GL_BLEND)
+
+
 classes = (
     AddReferenceMaterialOperator,
     AddRetopoMaterialsOperator,
@@ -417,6 +592,7 @@ classes = (
     MirrorModifierOperator,
     QuickShrinkwrapOperator,
     FlipNormalsOperator,
+    PolyStripOperator,
 )
 
 
