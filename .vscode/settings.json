@@ -10,7 +10,7 @@
         "--style",
         "{based_on_style: google, column_limit: 120}"
     ],
-    "python.sortImports.args": [
+    "isort.args": [
         "-l",
         "120"
     ],
