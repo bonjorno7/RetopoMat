@@ -475,7 +475,7 @@ class PolyStripOperator(Operator):
             results = context.scene.ray_cast(depsgraph, ray_origin, view_vector)
             context.active_object.hide_set(False)
 
-            result, location, normal, index, object, matrix = results
+            result, _, _, _, object, _ = results
             if not result:
                 return {'RUNNING_MODAL'}
 
@@ -501,11 +501,11 @@ class PolyStripOperator(Operator):
                 depsgraph = context.evaluated_depsgraph_get()
                 results = self.object.ray_cast(ray_origin_obj, ray_direction_obj, depsgraph=depsgraph)
 
-                result, location, normal, index = results
+                result, location, _, _ = results
                 if not result:
                     return {'RUNNING_MODAL'}
 
-                self.points.append(location)
+                self.points.append(self.object.matrix_world @ location)
                 if len(self.points) > 1:
                     self.lines.extend(self.points[-2:])
 
@@ -551,6 +551,9 @@ class PolyStripOperator(Operator):
             preserve_all_data_layers=True,
             depsgraph=depsgraph,
         )
+
+        matrix_inv = context.active_object.matrix_world.inverted_safe()
+        curve_evaluated.transform(matrix_inv)
 
         bm = bmesh.from_edit_mesh(context.active_object.data)
         bm.from_mesh(curve_evaluated)
