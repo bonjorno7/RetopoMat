@@ -15,8 +15,8 @@ bl_info = {
     'name': 'RetopoMat',
     'author': 'luwizart, bonjorno7',
     'description': 'A new method that makes retopology fun',
-    'blender': (2, 80, 0),
-    'version': (1, 5, 3),
+    'blender': (3, 3, 0),
+    'version': (1, 6, 0),
     'category': '3D View',
     'location': 'View3D',
 }
