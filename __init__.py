@@ -16,7 +16,7 @@ bl_info = {
     'author': 'luwizart, bonjorno7',
     'description': 'A new method that makes retopology fun',
     'blender': (3, 3, 0),
-    'version': (1, 6, 0),
+    'version': (1, 6, 1),
     'category': '3D View',
     'location': 'View3D',
 }
